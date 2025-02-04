@@ -1,0 +1,9 @@
+.vscode
+*.log
+*.tmp
+temp/
+downloads/
+library/
+.fuse_*
+node_modules/
+data/*.db

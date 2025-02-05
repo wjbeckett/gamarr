@@ -12,7 +12,7 @@ logs/
 # Next.js
 .next/
 out/
-frontend/public/sw.js
+public/sw.js
 public/workbox-*.js
 public/manifest.json
 

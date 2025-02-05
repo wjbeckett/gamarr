@@ -1,4 +1,3 @@
-// src/app.js
 const express = require('express');
 const bodyParser = require('body-parser');
 const logger = require('./config/logger');
@@ -11,14 +10,16 @@ const app = express();
 // Add body-parser middleware to parse JSON requests
 app.use(bodyParser.json());
 
-// Serve static files from the frontend build
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve the Next.js standalone app
+app.use('/_next', express.static(path.join(__dirname, '../frontend-standalone/static')));
+app.use(express.static(path.join(__dirname, '../frontend-standalone')));
 
-// Catch-all route to serve the frontend
+// Catch-all route to serve the Next.js app
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, '../frontend-standalone/index.html'));
 });
 
+// API Routes
 app.post('/api/games', async (req, res) => {
     try {
         const { name, release_date, description, destination_path } = req.body;
@@ -123,7 +124,7 @@ app.get('/api/tasks/:id/progress', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    logger.info(`Server is running on port ${PORT}`);
+  logger.info(`Server is running on port ${PORT}`);
 });
 
 module.exports = app;

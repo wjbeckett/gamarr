@@ -1,7 +1,8 @@
 const withPWA = require('next-pwa')({
-    dest: 'public',
-  });
-  
-  module.exports = withPWA({
-    // Other Next.js config options
-  });
+  dest: 'public',
+  disable: process.env.NODE_ENV === 'development', // Disable PWA in development
+});
+
+module.exports = withPWA({
+  output: 'standalone', // Enable standalone mode for Docker compatibility
+});

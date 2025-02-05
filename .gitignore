@@ -1,9 +1,39 @@
-.vscode
-*.log
-*.tmp
-temp/
-downloads/
-library/
-.fuse_*
+# Node.js
 node_modules/
-data/*.db
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Next.js
+.next/
+out/
+frontend/public/sw.js
+public/workbox-*.js
+public/manifest.json
+
+# Docker
+*.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+docker-compose.override.yml
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDE-specific files
+.vscode/
+.idea/
+*.iml
+
+# Build artifacts
+dist/
+build/
+coverage/

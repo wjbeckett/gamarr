@@ -13,7 +13,7 @@ RUN if ! getent group gamarr >/dev/null; then \
     fi
 
 # Create necessary directories
-RUN mkdir -p /app/downloads /app/library /app/data /app/temp /app/frontend && \
+RUN mkdir -p /app/downloads /app/library /app/data /app/temp && \
     chown -R gamarr:gamarr /app
 
 # Install required system dependencies
@@ -30,7 +30,7 @@ RUN wget https://www.rarlab.com/rar/rarlinux-x64-710b3.tar.gz && \
     chmod +x /usr/bin/unrar && \
     rm -rf rarlinux-x64-710b3.tar.gz rar
 
-# Copy only package.json and package-lock.json to the working directory
+# Copy backend package files
 COPY package*.json ./
 
 # Install backend dependencies
@@ -45,10 +45,16 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Build the frontend
 COPY ./frontend ./frontend/
-RUN cd ./frontend && npm install && npm run build
+WORKDIR /app/frontend
+RUN npm install
+RUN npm run build
 
-# Serve the frontend using the backend
-RUN cp -r ./frontend/.next ./src/public
+# Copy the standalone Next.js build to the backend directory
+RUN cp -r .next/standalone /app/frontend-standalone
+RUN cp -r .next/static /app/frontend-standalone/static
+
+# Move back to the app directory
+WORKDIR /app
 
 # Set permissions for the gamarr user
 RUN chown -R gamarr:gamarr /app

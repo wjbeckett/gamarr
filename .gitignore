@@ -23,6 +23,7 @@ public/manifest.json
 .env.test.local
 .env.production.local
 docker-compose.override.yml
+docker-compose.yml
 
 # OS-specific files
 .DS_Store

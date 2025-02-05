@@ -1,62 +1,74 @@
-# Use the official Node.js image as the base image
-FROM node:20-slim
+# Build Stage
+FROM node:20-alpine AS builder
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# Create gamarr user and group, handling existing GID/UID conflicts
-RUN if ! getent group gamarr >/dev/null; then \
-    groupadd -g 1000 gamarr || groupadd gamarr; \
-    fi && \
-    if ! id -u gamarr >/dev/null 2>&1; then \
-    useradd -u 1000 -g gamarr -m gamarr || useradd -g gamarr -m gamarr; \
-    fi
+# Install build dependencies
+RUN apk add --no-cache \
+    wget \
+    p7zip \
+    sqlite \
+    python3 \
+    make \
+    g++ \
+    bash
+
+# Copy and install backend dependencies
+COPY package*.json ./
+RUN npm ci
+
+# Copy backend source code
+COPY ./src ./src/
+
+# Build frontend
+COPY ./frontend ./frontend/
+WORKDIR /app/frontend
+RUN npm ci
+RUN npm run build
+
+# Copy the standalone Next.js build
+RUN cp -r .next/standalone /app/frontend-standalone
+RUN cp -r .next/static /app/frontend-standalone/.next/static
+
+# Runtime Stage
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apk add --no-cache \
+    wget \
+    p7zip \
+    sqlite \
+    bash \
+    shadow \
+    su-exec
+
+# Create gamarr user and group with specific IDs
+RUN addgroup -g 1000 gamarr && \
+    adduser -u 1000 -G gamarr -s /bin/sh -D gamarr
 
 # Create necessary directories
 RUN mkdir -p /app/downloads /app/library /app/data /app/temp && \
     chown -R gamarr:gamarr /app
 
-# Install required system dependencies
-RUN apt-get update && apt-get install -y \
-    wget \
-    gosu \
-    p7zip-full \
-    sqlite3 \
-    && rm -rf /var/lib/apt/lists/*
-
+# Install unrar in runtime stage
 RUN wget https://www.rarlab.com/rar/rarlinux-x64-710b3.tar.gz && \
     tar -xzf rarlinux-x64-710b3.tar.gz && \
     cp rar/unrar /usr/bin/unrar && \
     chmod +x /usr/bin/unrar && \
     rm -rf rarlinux-x64-710b3.tar.gz rar
 
-# Copy backend package files
-COPY package*.json ./
+# Copy only necessary files from builder
+COPY --from=builder /app/node_modules /app/node_modules
+COPY --from=builder /app/src /app/src
+COPY --from=builder /app/frontend-standalone /app/frontend-standalone
 
-# Install backend dependencies
-RUN npm install
-
-# Copy the backend source code
-COPY ./src ./src/
-
-# Add script to handle user permissions
+# Add entrypoint script
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# Build the frontend
-COPY ./frontend ./frontend/
-WORKDIR /app/frontend
-RUN npm install
-RUN npm run build
-
-# Copy the standalone Next.js build to the container
-RUN cp -r .next/standalone /app/frontend-standalone
-RUN cp -r .next/static /app/frontend-standalone/.next/static
-
-# Move back to the app directory
-WORKDIR /app
-
-# Set permissions for the gamarr user
+# Set permissions
 RUN chown -R gamarr:gamarr /app
 
 ENTRYPOINT ["docker-entrypoint.sh"]

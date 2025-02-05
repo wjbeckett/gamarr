@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/sh
+# Note: Using /bin/sh instead of /bin/bash as it's the default shell in Alpine
 
 # Default values for PUID and PGID
 PUID=${PUID:-1000}
@@ -9,13 +10,13 @@ echo "Setting up user with PUID: $PUID and PGID: $PGID"
 echo "-------------------------------------"
 
 # Update the gamarr group to match the specified PGID
-if [ "$(getent group gamarr | cut -d: -f3)" != "$PGID" ]; then
+if [ "$(id -g gamarr)" != "$PGID" ]; then
     groupmod -o -g "$PGID" gamarr
 fi
 
 # Update the gamarr user to match the specified PUID
 if [ "$(id -u gamarr)" != "$PUID" ]; then
-    usermod -o -u "$PUID" -g "$PGID" gamarr
+    usermod -o -u "$PUID" gamarr
 fi
 
 # Set permissions on app directories
@@ -35,4 +36,4 @@ User gid:    $(id -g gamarr)
 "
 
 # Switch to the gamarr user and execute the command
-exec gosu gamarr "$@"
+exec su-exec gamarr "$@"

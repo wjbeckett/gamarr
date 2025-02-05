@@ -5,4 +5,12 @@ const withPWA = require('next-pwa')({
 
 module.exports = withPWA({
   output: 'standalone', // Enable standalone mode for Docker compatibility
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://localhost:3001/api/:path*', // Proxy API requests to the backend
+      },
+    ];
+  },
 });

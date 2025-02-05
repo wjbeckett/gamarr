@@ -49,7 +49,7 @@ WORKDIR /app/frontend
 RUN npm install
 RUN npm run build
 
-# Copy the standalone Next.js build to the backend directory
+# Copy the standalone Next.js build to the container
 RUN cp -r .next/standalone /app/frontend-standalone
 RUN cp -r .next/static /app/frontend-standalone/static
 
@@ -60,4 +60,4 @@ WORKDIR /app
 RUN chown -R gamarr:gamarr /app
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["node", "src/app.js"]
+CMD ["node", "frontend-standalone/server.js"]

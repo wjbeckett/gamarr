@@ -6,9 +6,39 @@ const Monitor = require('./tasks/monitor');
 const { normalizeDownloadPath } = require('./utils/helpers');
 const path = require('path');
 const app = express();
+const MetadataService = require('./services/metadataService');
+const { searchGameName } = require('./utils/gameSearch');
 
 // Add body-parser middleware to parse JSON requests
 app.use(bodyParser.json());
+
+app.get('/api/search', async (req, res) => {
+    try {
+        const { query } = req.query;
+        
+        if (!query) {
+            return res.status(400).json({ 
+                error: 'Search query is required' 
+            });
+        }
+
+        logger.info(`Searching for game: ${query}`);
+        
+        // Use your existing game search functionality
+        const results = await searchGameName(query);
+        
+        res.json({
+            success: true,
+            results
+        });
+    } catch (error) {
+        logger.error('Game search failed:', error);
+        res.status(500).json({ 
+            error: 'Failed to search for games',
+            details: error.message 
+        });
+    }
+});
 
 // API Routes
 app.post('/api/games', async (req, res) => {

@@ -6,14 +6,14 @@ WORKDIR /app
 
 # Create gamarr user and group, handling existing GID/UID conflicts
 RUN if ! getent group gamarr >/dev/null; then \
-        groupadd -g 1000 gamarr || groupadd gamarr; \
+    groupadd -g 1000 gamarr || groupadd gamarr; \
     fi && \
     if ! id -u gamarr >/dev/null 2>&1; then \
-        useradd -u 1000 -g gamarr -m gamarr || useradd -g gamarr -m gamarr; \
+    useradd -u 1000 -g gamarr -m gamarr || useradd -g gamarr -m gamarr; \
     fi
 
 # Create necessary directories
-RUN mkdir -p /app/downloads /app/library /app/data /app/temp && \
+RUN mkdir -p /app/downloads /app/library /app/data /app/temp /app/frontend && \
     chown -R gamarr:gamarr /app
 
 # Install required system dependencies
@@ -33,15 +33,25 @@ RUN wget https://www.rarlab.com/rar/rarlinux-x64-710b3.tar.gz && \
 # Copy only package.json and package-lock.json to the working directory
 COPY package*.json ./
 
-# Install dependencies
+# Install backend dependencies
 RUN npm install
 
-# Copy the rest of the application code to the working directory
+# Copy the backend source code
 COPY ./src ./src/
 
 # Add script to handle user permissions
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Build the frontend
+COPY ./frontend ./frontend/
+RUN cd ./frontend && npm install && npm run build
+
+# Serve the frontend using the backend
+RUN cp -r ./frontend/.next ./src/public
+
+# Set permissions for the gamarr user
+RUN chown -R gamarr:gamarr /app
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["node", "src/app.js"]

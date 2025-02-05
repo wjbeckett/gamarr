@@ -15,6 +15,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
 
 function initializeDatabase() {
     db.serialize(() => {
+        // Create tasks table (already exists)
         db.run(`
             CREATE TABLE IF NOT EXISTS tasks (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,7 +30,27 @@ function initializeDatabase() {
             if (err) {
                 logger.error('Failed to create tasks table:', err);
             } else {
-                logger.info('Database initialized successfully.');
+                logger.info('Tasks table initialized successfully.');
+            }
+        });
+
+        // Create games table
+        db.run(`
+            CREATE TABLE IF NOT EXISTS games (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                release_date TEXT,
+                description TEXT,
+                destination_path TEXT,
+                status TEXT DEFAULT 'new',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        `, (err) => {
+            if (err) {
+                logger.error('Failed to create games table:', err);
+            } else {
+                logger.info('Games table initialized successfully.');
             }
         });
     });

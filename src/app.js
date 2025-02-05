@@ -5,11 +5,45 @@ const logger = require('./config/logger');
 const TaskService = require('./services/taskService');
 const Monitor = require('./tasks/monitor');
 const { normalizeDownloadPath } = require('./utils/helpers');
-
+const path = require('path');
 const app = express();
 
 // Add body-parser middleware to parse JSON requests
 app.use(bodyParser.json());
+
+// Serve static files from the frontend build
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Catch-all route to serve the frontend
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.post('/api/games', async (req, res) => {
+    try {
+        const { name, release_date, description, destination_path } = req.body;
+
+        if (!name || !destination_path) {
+            return res.status(400).json({ error: 'Name and destination path are required.' });
+        }
+
+        const query = `
+            INSERT INTO games (name, release_date, description, destination_path, status)
+            VALUES (?, ?, ?, ?, 'new')
+        `;
+        db.run(query, [name, release_date, description, destination_path], function (err) {
+            if (err) {
+                logger.error('Failed to add game to library:', err);
+                return res.status(500).json({ error: 'Failed to add game to library.' });
+            }
+
+            res.json({ id: this.lastID, name, release_date, description, destination_path, status: 'new' });
+        });
+    } catch (error) {
+        logger.error('Error adding game to library:', error);
+        res.status(500).json({ error: 'Internal server error.' });
+    }
+});
 
 // API endpoint to process a path
 app.post('/api/process', async (req, res) => {

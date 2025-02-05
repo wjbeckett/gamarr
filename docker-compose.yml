@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     container_name: gamarr
     ports:
-      - 3000:3000
+      - 3000:3000 # Expose the backend and frontend on port 3000
     volumes:
       - /mnt/user/data/gamarr/downloads:/app/downloads # Download directory
       - /mnt/user/data/drop/library:/app/library # Game library
@@ -23,4 +23,4 @@ services:
       - GIANTBOMB_API_KEY=f3acd85de64181bb8685a71eea5aef60a86c47e4
       - IGDB_CLIENT_ID=qwv7l5t0mbvdkxv7lo6ygeb9pbhz0v
       - IGDB_CLIENT_SECRET=r225oj8tkjdil1ywwajtpc8hhfvnu9
-    #restart: unless-stopped
+    restart: unless-stopped

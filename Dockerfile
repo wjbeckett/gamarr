@@ -43,10 +43,14 @@ RUN apk add --no-cache \
     bash \
     shadow \
     su-exec
-
-# Create gamarr user and group with specific IDs
-RUN addgroup -g 1000 gamarr && \
-    adduser -u 1000 -G gamarr -s /bin/sh -D gamarr
+    
+# Create gamarr user and group, handling existing GID/UID conflicts
+RUN if ! getent group gamarr >/dev/null; then \
+    groupadd -g 1000 gamarr || groupadd gamarr; \
+    fi && \
+    if ! id -u gamarr >/dev/null 2>&1; then \
+    useradd -u 1000 -g gamarr -m gamarr || useradd -g gamarr -m gamarr; \
+    fi
 
 # Create necessary directories
 RUN mkdir -p /app/downloads /app/library /app/data /app/temp && \

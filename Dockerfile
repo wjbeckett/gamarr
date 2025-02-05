@@ -30,6 +30,9 @@ RUN npm run build
 RUN cp -r .next/standalone /app/frontend-standalone
 RUN cp -r .next/static /app/frontend-standalone/.next/static
 
+# Create PM2 ecosystem file
+COPY ecosystem.config.js /app/
+
 # Runtime Stage
 FROM node:20-alpine
 
@@ -43,6 +46,9 @@ RUN apk add --no-cache \
     bash \
     shadow \
     su-exec
+
+# Install PM2 globally
+RUN npm install -g pm2
     
 # Create gamarr user and group, handling existing GID/UID conflicts
 RUN if ! getent group gamarr >/dev/null; then \
@@ -67,6 +73,7 @@ RUN wget https://www.rarlab.com/rar/rarlinux-x64-710b3.tar.gz && \
 COPY --from=builder /app/node_modules /app/node_modules
 COPY --from=builder /app/src /app/src
 COPY --from=builder /app/frontend-standalone /app/frontend-standalone
+COPY --from=builder /app/ecosystem.config.js /app/ecosystem.config.js
 
 # Add entrypoint script
 COPY docker-entrypoint.sh /usr/local/bin/
@@ -76,4 +83,4 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 RUN chown -R gamarr:gamarr /app
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["node", "frontend-standalone/server.js"]
+CMD ["pm2-runtime", "ecosystem.config.js"]

@@ -51,7 +51,7 @@ RUN npm run build
 
 # Copy the standalone Next.js build to the container
 RUN cp -r .next/standalone /app/frontend-standalone
-RUN cp -r .next/static /app/frontend-standalone/static
+RUN cp -r .next/static /app/frontend-standalone/.next/static
 
 # Move back to the app directory
 WORKDIR /app

@@ -6,6 +6,7 @@ const Monitor = require('./tasks/monitor');
 const { normalizeDownloadPath } = require('./utils/helpers');
 const path = require('path');
 const app = express();
+const db = require('./db');
 const MetadataService = require('./services/metadata');
 //const { searchGameName } = require('./utils/gameSearch'); 
 

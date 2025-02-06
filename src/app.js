@@ -7,7 +7,7 @@ const { normalizeDownloadPath } = require('./utils/helpers');
 const path = require('path');
 const app = express();
 const MetadataService = require('./services/metadata');
-const { searchGameName } = require('./utils/gameSearch'); 
+//const { searchGameName } = require('./utils/gameSearch'); 
 
 // Add body-parser middleware to parse JSON requests
 app.use(bodyParser.json());

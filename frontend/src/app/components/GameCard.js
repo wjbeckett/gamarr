@@ -15,7 +15,7 @@ export default function GameCard({ game, onClick }) {
 
     return (
         <motion.div
-            className="bg-card border border-border-dark rounded-lg shadow-lg shadow-black/10"
+            className="bg-card border border-border-dark rounded-lg shadow-lg shadow-black/10 w-full"
             animate={{
                 backgroundColor: '#1E1E1E',
             }}
@@ -30,28 +30,35 @@ export default function GameCard({ game, onClick }) {
             }}
             onClick={handleClick}
         >
-            <div className="relative h-48 w-full bg-gray-800 flex items-center justify-center">
+            <div className="relative aspect-[2/3] w-full bg-gray-800 flex items-center justify-center rounded-t-lg overflow-hidden">
                 {game.cover_url ? (
                     <img
                         src={game.cover_url}
                         alt={game.name}
-                        className="object-cover w-full h-full"
+                        className="w-full h-full object-cover"
                     />
                 ) : (
-                    <span className="text-gray-500 text-sm">No Image Available</span>
+                    <span className="text-gray-500 text-sm">No Cover Art</span>
                 )}
             </div>
             
             <div className="p-4">
-                <h2 className="text-xl font-bold text-text-primary mb-2">{game.name}</h2>
-                {game.releaseDate && (
-                    <p className="text-sm text-text-secondary mb-2">
-                        Released: {new Date(game.releaseDate).getFullYear()}
-                    </p>
-                )}
-                <p className="text-text-secondary mb-4 line-clamp-3">
-                    {game.description || 'No description available.'}
-                </p>
+                <h2 className="text-lg font-bold text-text-primary mb-2 line-clamp-1">{game.name}</h2>
+                <div className="text-sm text-text-secondary mb-2">
+                    {game.library_name ? `Library: ${game.library_name}` : 'No library assigned'}
+                </div>
+                <div className="flex justify-between items-center">
+                    <span className="text-sm text-text-secondary">
+                        {game.releaseDate ? new Date(game.releaseDate).getFullYear() : 'Unknown'}
+                    </span>
+                    <span className={`px-2 py-1 rounded text-xs ${
+                        game.status === 'completed' ? 'bg-green-500/20 text-green-300' :
+                        game.status === 'downloading' ? 'bg-blue-500/20 text-blue-300' :
+                        'bg-gray-500/20 text-gray-300'
+                    }`}>
+                        {game.status || 'Not Downloaded'}
+                    </span>
+                </div>
             </div>
         </motion.div>
     );

@@ -2,6 +2,53 @@
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
+// New FileLocationInfo component
+function FileLocationInfo({ path, status }) {
+    const [exists, setExists] = useState(null);
+    
+    useEffect(() => {
+        async function checkPath() {
+            if (!path) return;
+            
+            try {
+                const response = await fetch(`/api/games/check-path?path=${encodeURIComponent(path)}`);
+                const data = await response.json();
+                setExists(data.exists);
+            } catch (error) {
+                console.error('Failed to check path:', error);
+                setExists(false);
+            }
+        }
+        
+        checkPath();
+    }, [path]);
+
+    if (!path) {
+        return (
+            <div className="bg-yellow-500/20 text-yellow-300 p-4 rounded-lg">
+                <h3 className="font-semibold mb-2">Game Location</h3>
+                <p>Game has not been downloaded yet</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className={`p-4 rounded-lg ${
+            exists === null ? 'bg-card' :
+            exists ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'
+        }`}>
+            <h3 className="font-semibold mb-2">Game Location</h3>
+            <p className="break-all">{path}</p>
+            {exists === false && (
+                <p className="mt-2 text-sm">Directory not found on filesystem</p>
+            )}
+            {status && (
+                <p className="mt-2 text-sm">Status: {status}</p>
+            )}
+        </div>
+    );
+}
+
 export default function GameDetails() {
     const params = useParams();
     const [game, setGame] = useState(null);
@@ -78,24 +125,36 @@ export default function GameDetails() {
                         alt={game.name}
                         className="w-full h-64 object-cover rounded-lg"
                     />
+                    {game.release_date && (
+                        <div className="mt-4 text-center text-text-secondary">
+                            Released: {new Date(game.release_date).getFullYear()}
+                        </div>
+                    )}
                 </div>
                 
                 <div className="flex-grow">
                     <h1 className="text-3xl font-bold text-text-primary mb-4">{game.name}</h1>
-                    <p className="text-text-secondary mb-4">{game.description}</p>
+                    <p className="text-text-secondary mb-6">{game.description}</p>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div className="space-y-4 mb-6">
                         <div className="bg-card p-4 rounded-lg">
-                            <h3 className="font-semibold text-text-primary mb-2">Status</h3>
-                            <p className="text-text-secondary">{game.status || 'Not downloaded'}</p>
+                            <h3 className="font-semibold text-text-primary mb-2">Game Details</h3>
+                            <div className="grid grid-cols-2 gap-4 text-text-secondary">
+                                <div>
+                                    <span className="font-medium">Status:</span> {game.status || 'Not downloaded'}
+                                </div>
+                                {game.library_name && (
+                                    <div>
+                                        <span className="font-medium">Library:</span> {game.library_name}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                         
-                        <div className="bg-card p-4 rounded-lg">
-                            <h3 className="font-semibold text-text-primary mb-2">File Location</h3>
-                            <p className="text-text-secondary break-all">
-                                {game.destination_path || 'Not set'}
-                            </p>
-                        </div>
+                        <FileLocationInfo 
+                            path={game.destination_path} 
+                            status={game.status}
+                        />
                     </div>
 
                     <div className="flex gap-4">
@@ -105,12 +164,14 @@ export default function GameDetails() {
                         >
                             Force Search
                         </button>
-                        <button 
-                            className="bg-primary text-white px-4 py-2 rounded hover:bg-primary-hover transition"
-                            onClick={() => {/* TODO: Implement send to indexer */}}
-                        >
-                            Send to Indexer
-                        </button>
+                        {game.status !== 'downloading' && (
+                            <button 
+                                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+                                onClick={() => {/* TODO: Implement download */}}
+                            >
+                                Download
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>

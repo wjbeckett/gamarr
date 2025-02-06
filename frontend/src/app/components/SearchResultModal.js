@@ -1,6 +1,29 @@
 'use client';
+import { useState, useEffect } from 'react';
 
 export default function SearchResultModal({ game, isOpen, onClose, onAddGame }) {
+    const [libraryLocations, setLibraryLocations] = useState([]);
+    const [selectedLocation, setSelectedLocation] = useState(null);
+
+    useEffect(() => {
+        async function fetchLibraryLocations() {
+            try {
+                const response = await fetch('/api/settings/library-locations');
+                const data = await response.json();
+                setLibraryLocations(data);
+                if (data.length > 0) {
+                    setSelectedLocation(data[0].id); // Default to the first location
+                }
+            } catch (error) {
+                console.error('Failed to fetch library locations:', error);
+            }
+        }
+
+        if (isOpen) {
+            fetchLibraryLocations();
+        }
+    }, [isOpen]);
+
     if (!isOpen) return null;
 
     const handleSubmit = (e) => {
@@ -9,6 +32,7 @@ export default function SearchResultModal({ game, isOpen, onClose, onAddGame }) 
         const data = {
             ...game,
             destination_path: formData.get('destination'),
+            library_location_id: selectedLocation,
             should_search: formData.get('should_search') === 'on'
         };
         onAddGame(data);
@@ -32,22 +56,20 @@ export default function SearchResultModal({ game, isOpen, onClose, onAddGame }) 
                         {game.description || 'No description available.'}
                     </p>
                     
-                    {game.releaseDate && (
-                        <p className="text-sm text-text-secondary mb-4">
-                            Released: {new Date(game.releaseDate).toDateString()}
-                        </p>
-                    )}
-                    
                     <div className="mb-4">
                         <label className="block text-sm text-text-secondary mb-2">
                             Destination Location
                         </label>
-                        <select 
-                            name="destination"
-                            className="w-full border border-border-dark bg-card text-text-primary rounded px-4 py-2"
+                        <select
+                            value={selectedLocation}
+                            onChange={(e) => setSelectedLocation(e.target.value)}
+                            className="w-full bg-gray-800 text-white p-2 rounded"
                         >
-                            <option value="/library">/library</option>
-                            <option value="/games">/games</option>
+                            {libraryLocations.map((location) => (
+                                <option key={location.id} value={location.id}>
+                                    {location.name} ({location.path})
+                                </option>
+                            ))}
                         </select>
                     </div>
                     

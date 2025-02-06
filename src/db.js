@@ -34,7 +34,24 @@ function initializeDatabase() {
             }
         });
 
-        // Create games table
+        // Create library_locations table
+        db.run(`
+            CREATE TABLE IF NOT EXISTS library_locations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                path TEXT NOT NULL UNIQUE,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        `, (err) => {
+            if (err) {
+                logger.error('Failed to create library_locations table:', err);
+            } else {
+                logger.info('Library locations table initialized successfully.');
+            }
+        });
+
+        // Create games table with library_location_id
         db.run(`
             CREATE TABLE IF NOT EXISTS games (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,8 +60,10 @@ function initializeDatabase() {
                 description TEXT,
                 destination_path TEXT,
                 status TEXT DEFAULT 'new',
+                library_location_id INTEGER,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (library_location_id) REFERENCES library_locations(id)
             )
         `, (err) => {
             if (err) {
@@ -52,27 +71,64 @@ function initializeDatabase() {
             } else {
                 logger.info('Games table initialized successfully.');
                 
-                // Check if cover_url column exists
-                db.get("PRAGMA table_info(games)", (err, rows) => {
-                    if (err) {
-                        logger.error('Error checking table info:', err);
-                        return;
+                // Add any missing columns
+                const columnsToAdd = [
+                    {
+                        name: 'cover_url',
+                        type: 'TEXT'
+                    },
+                    {
+                        name: 'library_location_id',
+                        type: 'INTEGER REFERENCES library_locations(id)'
                     }
-                    
-                    // Add cover_url column if it doesn't exist
-                    db.run(`
-                        ALTER TABLE games 
-                        ADD COLUMN cover_url TEXT;
-                    `, (err) => {
+                ];
+
+                columnsToAdd.forEach(column => {
+                    db.get(`PRAGMA table_info(games)`, (err, rows) => {
                         if (err) {
-                            // Column might already exist, which is fine
-                            if (!err.message.includes('duplicate column name')) {
-                                logger.error('Error adding cover_url column:', err);
-                            }
-                        } else {
-                            logger.info('Added cover_url column to games table');
+                            logger.error(`Error checking table info for ${column.name}:`, err);
+                            return;
+                        }
+
+                        // Check if column exists
+                        const columnExists = rows.some(row => row.name === column.name);
+                        
+                        if (!columnExists) {
+                            db.run(`
+                                ALTER TABLE games 
+                                ADD COLUMN ${column.name} ${column.type};
+                            `, (err) => {
+                                if (err) {
+                                    if (!err.message.includes('duplicate column name')) {
+                                        logger.error(`Error adding ${column.name} column:`, err);
+                                    }
+                                } else {
+                                    logger.info(`Added ${column.name} column to games table`);
+                                }
+                            });
                         }
                     });
+                });
+            }
+        });
+
+        // Add default library location if none exists
+        db.get(`SELECT COUNT(*) as count FROM library_locations`, (err, row) => {
+            if (err) {
+                logger.error('Error checking library locations:', err);
+                return;
+            }
+
+            if (row.count === 0) {
+                db.run(`
+                    INSERT INTO library_locations (name, path)
+                    VALUES (?, ?)
+                `, ['Default Library', '/app/library'], (err) => {
+                    if (err) {
+                        logger.error('Error adding default library location:', err);
+                    } else {
+                        logger.info('Added default library location');
+                    }
                 });
             }
         });

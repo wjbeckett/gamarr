@@ -72,40 +72,6 @@ function initializeDatabase() {
                         } else {
                             logger.info('Added cover_url column to games table');
                         }
-
-                        // Add test data only after ensuring the column exists
-                        db.get("SELECT COUNT(*) as count FROM games", (err, row) => {
-                            if (err) {
-                                logger.error('Error checking games count:', err);
-                                return;
-                            }
-
-                            if (row.count === 0) {
-                                db.run(`
-                                    INSERT INTO games (
-                                        name,
-                                        release_date,
-                                        description,
-                                        destination_path,
-                                        status,
-                                        cover_url
-                                    ) VALUES (
-                                        'Test Game',
-                                        '2024-02-06',
-                                        'This is a test game description',
-                                        '/games/test-game',
-                                        'new',
-                                        'https://example.com/cover.jpg'
-                                    )
-                                `, (err) => {
-                                    if (err) {
-                                        logger.error('Error inserting test data:', err);
-                                    } else {
-                                        logger.info('Test data inserted successfully');
-                                    }
-                                });
-                            }
-                        });
                     });
                 });
             }

@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import DashboardCard from './DashboardCard';
+import DashboardCard from '../app/components/DashboardCard';
 
 export default function Library() {
   const [games, setGames] = useState([]);

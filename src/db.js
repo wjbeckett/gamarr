@@ -54,6 +54,25 @@ function initializeDatabase() {
                 logger.info('Games table initialized successfully.');
             }
         });
+
+        // add some test data
+        db.run(`
+            INSERT INTO games (
+                name,
+                release_date,
+                description,
+                destination_path,
+                status,
+                cover_url
+            ) VALUES (
+                'Test Game',
+                '2024-02-06',
+                'This is a test game description',
+                '/games/test-game',
+                'new',
+                'https://example.com/cover.jpg'
+            )
+        `);
     });
 }
 

@@ -15,7 +15,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
 
 function initializeDatabase() {
     db.serialize(() => {
-        // Create tasks table (already exists)
+        // Create tasks table
         db.run(`
             CREATE TABLE IF NOT EXISTS tasks (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,7 +43,6 @@ function initializeDatabase() {
                 description TEXT,
                 destination_path TEXT,
                 status TEXT DEFAULT 'new',
-                cover_url TEXT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
@@ -52,27 +51,65 @@ function initializeDatabase() {
                 logger.error('Failed to create games table:', err);
             } else {
                 logger.info('Games table initialized successfully.');
+                
+                // Check if cover_url column exists
+                db.get("PRAGMA table_info(games)", (err, rows) => {
+                    if (err) {
+                        logger.error('Error checking table info:', err);
+                        return;
+                    }
+                    
+                    // Add cover_url column if it doesn't exist
+                    db.run(`
+                        ALTER TABLE games 
+                        ADD COLUMN cover_url TEXT;
+                    `, (err) => {
+                        if (err) {
+                            // Column might already exist, which is fine
+                            if (!err.message.includes('duplicate column name')) {
+                                logger.error('Error adding cover_url column:', err);
+                            }
+                        } else {
+                            logger.info('Added cover_url column to games table');
+                        }
+
+                        // Add test data only after ensuring the column exists
+                        db.get("SELECT COUNT(*) as count FROM games", (err, row) => {
+                            if (err) {
+                                logger.error('Error checking games count:', err);
+                                return;
+                            }
+
+                            if (row.count === 0) {
+                                db.run(`
+                                    INSERT INTO games (
+                                        name,
+                                        release_date,
+                                        description,
+                                        destination_path,
+                                        status,
+                                        cover_url
+                                    ) VALUES (
+                                        'Test Game',
+                                        '2024-02-06',
+                                        'This is a test game description',
+                                        '/games/test-game',
+                                        'new',
+                                        'https://example.com/cover.jpg'
+                                    )
+                                `, (err) => {
+                                    if (err) {
+                                        logger.error('Error inserting test data:', err);
+                                    } else {
+                                        logger.info('Test data inserted successfully');
+                                    }
+                                });
+                            }
+                        });
+                    });
+                });
             }
         });
-
-        // add some test data
-        db.run(`
-            INSERT INTO games (
-                name,
-                release_date,
-                description,
-                destination_path,
-                status,
-                cover_url
-            ) VALUES (
-                'Test Game',
-                '2024-02-06',
-                'This is a test game description',
-                '/games/test-game',
-                'new',
-                'https://example.com/cover.jpg'
-            )
-        `);
     });
 }
 

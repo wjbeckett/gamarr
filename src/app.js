@@ -5,39 +5,27 @@ const TaskService = require('./services/taskService');
 const Monitor = require('./tasks/monitor');
 const { normalizeDownloadPath } = require('./utils/helpers');
 const path = require('path');
-const app = express();
 const db = require('./db');
 const MetadataService = require('./services/metadata');
-//const { searchGameName } = require('./utils/gameSearch'); 
 
 // Add body-parser middleware to parse JSON requests
 app.use(bodyParser.json());
 
-app.get('/api/search', async (req, res) => {
-    try {
-        const { query } = req.query;
-        
-        if (!query) {
-            return res.status(400).json({ 
-                error: 'Search query is required' 
-            });
-        }
+// POST endpoint to search for games
+app.post('/api/search', async (req, res) => {
+    const { query } = req.body;
 
-        logger.info(`Searching for game: ${query}`);
-        
-        // Use your existing game search functionality
-        const results = await searchGameName(query);
-        
-        res.json({
-            success: true,
-            results
-        });
+    if (!query || query.trim() === '') {
+        return res.status(400).json({ error: 'Search query is required' });
+    }
+
+    try {
+        const metadataService = new MetadataService();
+        const results = await metadataService.searchGameName(query);
+        res.json(results);
     } catch (error) {
-        logger.error('Game search failed:', error);
-        res.status(500).json({ 
-            error: 'Failed to search for games',
-            details: error.message 
-        });
+        logger.error('Error searching for games:', error);
+        res.status(500).json({ error: 'Failed to search for games' });
     }
 });
 
@@ -70,30 +58,24 @@ app.get('/api/games', async (req, res) => {
     }
 });
 
-// API Routes
+// POST endpoint to add a game to the library
 app.post('/api/games', async (req, res) => {
+    const { name, release_date, description, destination_path, status, cover_url } = req.body;
+
+    if (!name || !destination_path) {
+        return res.status(400).json({ error: 'Name and destination path are required' });
+    }
+
     try {
-        const { name, release_date, description, destination_path } = req.body;
-
-        if (!name || !destination_path) {
-            return res.status(400).json({ error: 'Name and destination path are required.' });
-        }
-
         const query = `
-            INSERT INTO games (name, release_date, description, destination_path, status)
-            VALUES (?, ?, ?, ?, 'new')
+            INSERT INTO games (name, release_date, description, destination_path, status, cover_url)
+            VALUES (?, ?, ?, ?, ?, ?)
         `;
-        db.run(query, [name, release_date, description, destination_path], function (err) {
-            if (err) {
-                logger.error('Failed to add game to library:', err);
-                return res.status(500).json({ error: 'Failed to add game to library.' });
-            }
-
-            res.json({ id: this.lastID, name, release_date, description, destination_path, status: 'new' });
-        });
+        await db.run(query, [name, release_date, description, destination_path, status || 'new', cover_url]);
+        res.status(201).json({ message: 'Game added successfully' });
     } catch (error) {
-        logger.error('Error adding game to library:', error);
-        res.status(500).json({ error: 'Internal server error.' });
+        logger.error('Failed to add game:', error);
+        res.status(500).json({ error: 'Failed to add game' });
     }
 });
 

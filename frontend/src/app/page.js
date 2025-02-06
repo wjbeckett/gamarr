@@ -1,94 +1,159 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import Link from 'next/link';
-import DashboardCard from '../app/components/DashboardCard';
+import { useState } from 'react';
+import Image from 'next/image';
 
-export default function Library() {
-  const [games, setGames] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+export default function Search() {
+    const [searchTerm, setSearchTerm] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [message, setMessage] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    async function fetchGames() {
-      try {
-        const response = await fetch('/api/games');
-        if (!response.ok) {
-          throw new Error('Failed to fetch games');
+    async function handleSearch() {
+        if (!searchTerm.trim()) {
+            setMessage({ type: 'error', text: 'Please enter a game name.' });
+            return;
         }
-        const data = await response.json();
-        setGames(data);
-      } catch (err) {
-        setError(err.message);
-        console.error('Error fetching games:', err);
-      } finally {
-        setLoading(false);
-      }
+
+        setIsLoading(true);
+        setMessage(null);
+        setSearchResults([]);
+
+        try {
+            const response = await fetch('/api/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: searchTerm })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to search for games');
+            }
+
+            const data = await response.json();
+            
+            if (data.length === 0) {
+                setMessage({ type: 'info', text: 'No games found.' });
+            } else {
+                setSearchResults(data);
+            }
+        } catch (error) {
+            console.error('Failed to search for games:', error);
+            setMessage({ type: 'error', text: 'Failed to search for games.' });
+        } finally {
+            setIsLoading(false);
+        }
     }
 
-    fetchGames();
-  }, []);
+    async function handleAddGame(game) {
+        try {
+            const response = await fetch('/api/games', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: game.name,
+                    release_date: game.releaseDate,
+                    description: game.description,
+                    destination_path: `/library/${game.name.replace(/[^a-zA-Z0-9]/g, '_')}`,
+                    cover_url: game.cover_url
+                }),
+            });
 
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="p-6"
-    >
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-text-primary">Library</h1>
-          <p className="text-text-secondary mt-2">
-            Manage your game library and add new games.
-          </p>
-        </div>
-        <Link
-          href="/library/search"
-          className="bg-primary text-white px-4 py-2 rounded hover:bg-primary-hover transition-colors"
-        >
-          Add a New Game
-        </Link>
-      </div>
+            if (response.ok) {
+                setMessage({ type: 'success', text: `Game "${game.name}" added to library.` });
+                // Remove the game from search results
+                setSearchResults(prev => prev.filter(g => g.name !== game.name));
+            } else {
+                const error = await response.json();
+                setMessage({ type: 'error', text: error.error || 'Failed to add game to library.' });
+            }
+        } catch (error) {
+            console.error('Failed to add game to library:', error);
+            setMessage({ type: 'error', text: 'Failed to add game to library.' });
+        }
+    }
 
-      {loading ? (
-        <div className="text-text-secondary">Loading games...</div>
-      ) : error ? (
-        <div className="text-red-500">Error: {error}</div>
-      ) : games.length === 0 ? (
-        <div className="text-text-secondary">
-          No games in your library. Click "Add a New Game" to get started!
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {games.map((game) => (
-            <DashboardCard key={game.id} title={game.name}>
-              <div className="space-y-2">
-                {game.cover_url && (
-                  <img
-                    src={game.cover_url}
-                    alt={game.name}
-                    className="w-full h-48 object-cover rounded-md mb-4"
-                  />
-                )}
-                <p className="text-sm">{game.description || 'No description available.'}</p>
-                <div className="flex justify-between items-center mt-4">
-                  <span className="text-sm">
-                    {game.release_date ? new Date(game.release_date).getFullYear() : 'Unknown year'}
-                  </span>
-                  <span className={`px-2 py-1 rounded text-xs ${
-                    game.status === 'completed' ? 'bg-green-500/20 text-green-300' :
-                    game.status === 'downloading' ? 'bg-blue-500/20 text-blue-300' :
-                    'bg-gray-500/20 text-gray-300'
-                  }`}>
-                    {game.status}
-                  </span>
+    // Handle Enter key press
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
+
+    return (
+        <div className="p-6 max-w-7xl mx-auto">
+            <h1 className="text-3xl font-bold text-text-primary mb-6">Search for a Game</h1>
+            
+            {/* Search Input and Button */}
+            <div className="flex gap-2 mb-6">
+                <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Search for a game..."
+                    className="flex-1 border border-border-dark bg-card text-text-primary rounded px-4 py-2"
+                />
+                <button
+                    onClick={handleSearch}
+                    disabled={isLoading}
+                    className="bg-primary text-white px-6 py-2 rounded hover:bg-primary-hover transition disabled:opacity-50"
+                >
+                    {isLoading ? 'Searching...' : 'Search'}
+                </button>
+            </div>
+
+            {/* Messages */}
+            {message && (
+                <div className={`p-4 mb-6 rounded ${
+                    message.type === 'success' ? 'bg-green-100 text-green-700' :
+                    message.type === 'error' ? 'bg-red-100 text-red-700' :
+                    'bg-blue-100 text-blue-700'
+                }`}>
+                    {message.text}
                 </div>
-              </div>
-            </DashboardCard>
-          ))}
+            )}
+
+            {/* Loading State */}
+            {isLoading && (
+                <div className="flex justify-center items-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+            )}
+
+            {/* Search Results */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {searchResults.map((game) => (
+                    <div key={game.name} className="bg-card border border-border-dark rounded-lg overflow-hidden hover:border-primary transition">
+                        {game.cover_url && (
+                            <div className="relative h-48 w-full">
+                                <Image
+                                    src={game.cover_url}
+                                    alt={game.name}
+                                    fill
+                                    className="object-cover"
+                                />
+                            </div>
+                        )}
+                        <div className="p-4">
+                            <h2 className="text-xl font-bold text-text-primary mb-2">{game.name}</h2>
+                            {game.releaseDate && (
+                                <p className="text-sm text-text-secondary mb-2">
+                                    Released: {new Date(game.releaseDate).getFullYear()}
+                                </p>
+                            )}
+                            <p className="text-text-secondary mb-4 line-clamp-3">
+                                {game.description || 'No description available.'}
+                            </p>
+                            <button
+                                onClick={() => handleAddGame(game)}
+                                className="w-full bg-primary text-white px-4 py-2 rounded hover:bg-primary-hover transition"
+                            >
+                                Add to Library
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
         </div>
-      )}
-    </motion.div>
-  );
+    );
 }

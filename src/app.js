@@ -7,6 +7,7 @@ const { normalizeDownloadPath } = require('./utils/helpers');
 const path = require('path');
 const db = require('./db');
 const MetadataService = require('./services/metadata');
+const app = express();
 
 // Add body-parser middleware to parse JSON requests
 app.use(bodyParser.json());

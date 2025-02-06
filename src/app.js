@@ -30,6 +30,41 @@ app.post('/api/search', async (req, res) => {
     }
 });
 
+app.get('/api/games/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        db.get(`
+            SELECT 
+                id,
+                name,
+                release_date,
+                description,
+                destination_path,
+                status,
+                cover_url,
+                created_at,
+                updated_at
+            FROM games
+            WHERE id = ?
+        `, [id], (err, row) => {
+            if (err) {
+                logger.error('Failed to fetch game:', err);
+                return res.status(500).json({ error: 'Failed to fetch game' });
+            }
+            
+            if (!row) {
+                return res.status(404).json({ error: 'Game not found' });
+            }
+            
+            res.json(row);
+        });
+    } catch (error) {
+        logger.error('Error fetching game:', error);
+        res.status(500).json({ error: 'Internal server error.' });
+    }
+});
+
 // API endpoint to fetch all games
 app.get('/api/games', async (req, res) => {
     try {

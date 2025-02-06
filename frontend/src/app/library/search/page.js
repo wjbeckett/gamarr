@@ -1,13 +1,16 @@
 'use client';
 import { useState } from 'react';
-import Image from 'next/image';
+import GameCard from '../../components/GameCard';
+import SearchResultModal from '../../components/SearchResultModal';
 
 export default function Search() {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [message, setMessage] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [hasSearched, setHasSearched] = useState(false); // New state to track if a search has been performed
+    const [hasSearched, setHasSearched] = useState(false);
+    const [selectedGame, setSelectedGame] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     async function handleSearch() {
         if (!searchTerm.trim()) {
@@ -43,38 +46,43 @@ export default function Search() {
         }
     }
 
-    async function handleAddGame(game) {
+    const handleCardClick = (game) => {
+        setSelectedGame(game);
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setSelectedGame(null);
+        setIsModalOpen(false);
+    };
+
+    const handleAddGame = async (gameData) => {
         try {
             const response = await fetch('/api/games', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: game.name,
-                    release_date: game.releaseDate,
-                    description: game.description,
-                    destination_path: `/library/${game.name.replace(/[^a-zA-Z0-9]/g, '_')}`,
-                    cover_url: game.cover_url,
-                }),
+                body: JSON.stringify(gameData),
             });
 
             if (response.ok) {
-                setMessage({ type: 'success', text: `Game "${game.name}" added to library.` });
-                // Remove the game from search results
-                setSearchResults((prev) => prev.filter((g) => g.name !== game.name));
+                setMessage({ type: 'success', text: `Game "${gameData.name}" added to library.` });
+                setSearchResults((prev) => 
+                    prev.filter((g) => g.name !== gameData.name)
+                );
+                handleCloseModal();
             } else {
                 const error = await response.json();
-                setMessage({ type: 'error', text: error.error || 'Failed to add game to library.' });
+                setMessage({ 
+                    type: 'error', 
+                    text: error.error || 'Failed to add game to library.' 
+                });
             }
         } catch (error) {
             console.error('Failed to add game to library:', error);
-            setMessage({ type: 'error', text: 'Failed to add game to library.' });
-        }
-    }
-
-    // Handle Enter key press
-    const handleKeyPress = (e) => {
-        if (e.key === 'Enter') {
-            handleSearch();
+            setMessage({ 
+                type: 'error', 
+                text: 'Failed to add game to library.' 
+            });
         }
     };
 
@@ -88,7 +96,7 @@ export default function Search() {
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    onKeyPress={handleKeyPress}
+                    onKeyDown={handleKeyPress}
                     placeholder="Search for a game..."
                     className="flex-1 border border-border-dark bg-card text-text-primary rounded px-4 py-2"
                 />
@@ -126,48 +134,29 @@ export default function Search() {
             {/* Search Results */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {isLoading ? null : (
-                    hasSearched && searchResults.length === 0 ? ( // Only show "No games found" if a search has been performed
+                    hasSearched && searchResults.length === 0 ? (
                         <div className="col-span-full text-center py-8 text-text-secondary">
                             No games found matching your search.
                         </div>
                     ) : (
                         searchResults.map((game) => (
-                            <div
+                            <GameCard
                                 key={game.name}
-                                className="bg-card border border-border-dark rounded-lg overflow-hidden hover:border-primary transition"
-                            >
-                                {game.cover_url && (
-                                    <div className="relative h-48 w-full">
-                                        <Image
-                                            src={game.cover_url}
-                                            alt={game.name}
-                                            fill
-                                            className="object-cover"
-                                        />
-                                    </div>
-                                )}
-                                <div className="p-4">
-                                    <h2 className="text-xl font-bold text-text-primary mb-2">{game.name}</h2>
-                                    {game.releaseDate && (
-                                        <p className="text-sm text-text-secondary mb-2">
-                                            Released: {new Date(game.releaseDate).getFullYear()}
-                                        </p>
-                                    )}
-                                    <p className="text-text-secondary mb-4 line-clamp-3">
-                                        {game.description || 'No description available.'}
-                                    </p>
-                                    <button
-                                        onClick={() => handleAddGame(game)}
-                                        className="w-full bg-primary text-white px-4 py-2 rounded hover:bg-primary-hover transition"
-                                    >
-                                        Add to Library
-                                    </button>
-                                </div>
-                            </div>
+                                game={game}
+                                onClick={handleCardClick}
+                            />
                         ))
                     )
                 )}
             </div>
+
+            {/* Modal */}
+            <SearchResultModal
+                game={selectedGame}
+                isOpen={isModalOpen}
+                onClose={handleCloseModal}
+                onAddGame={handleAddGame}
+            />
         </div>
     );
 }

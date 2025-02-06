@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import DashboardCard from '../app/components/DashboardCard';
+import GameCard from '../components/GameCard';
 
 export default function Library() {
   const [games, setGames] = useState([]);
@@ -52,40 +52,28 @@ export default function Library() {
       </div>
 
       {loading ? (
-        <div className="text-text-secondary">Loading games...</div>
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
       ) : error ? (
-        <div className="text-red-500">Error: {error}</div>
+        <div className="bg-red-100 text-red-700 p-4 rounded">Error: {error}</div>
       ) : games.length === 0 ? (
-        <div className="text-text-secondary">
+        <div className="text-center py-8 text-text-secondary">
           No games in your library. Click "Add a New Game" to get started!
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {games.map((game) => (
-            <DashboardCard key={game.id} title={game.name}>
-              <div className="space-y-2">
-                {game.cover_url && (
-                  <img
-                    src={game.cover_url}
-                    alt={game.name}
-                    className="w-full h-48 object-cover rounded-md mb-4"
-                  />
-                )}
-                <p className="text-sm">{game.description || 'No description available.'}</p>
-                <div className="flex justify-between items-center mt-4">
-                  <span className="text-sm">
-                    {game.release_date ? new Date(game.release_date).getFullYear() : 'Unknown year'}
-                  </span>
-                  <span className={`px-2 py-1 rounded text-xs ${
-                    game.status === 'completed' ? 'bg-green-500/20 text-green-300' :
-                    game.status === 'downloading' ? 'bg-blue-500/20 text-blue-300' :
-                    'bg-gray-500/20 text-gray-300'
-                  }`}>
-                    {game.status}
-                  </span>
-                </div>
-              </div>
-            </DashboardCard>
+            <GameCard
+              key={game.id}
+              game={{
+                ...game,
+                releaseDate: game.release_date,
+                // Map any other properties that might have different names
+                status: game.status || 'unknown',
+                description: game.description || 'No description available.'
+              }}
+            />
           ))}
         </div>
       )}

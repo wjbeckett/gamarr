@@ -11,6 +11,11 @@ export default function Search() {
     const [hasSearched, setHasSearched] = useState(false);
     const [selectedGame, setSelectedGame] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
 
     async function handleSearch() {
         if (!searchTerm.trim()) {
@@ -96,7 +101,7 @@ export default function Search() {
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    onKeyDown={handleKeyPress}
+                    onKeyDown={handleKeyDown}
                     placeholder="Search for a game..."
                     className="flex-1 border border-border-dark bg-card text-text-primary rounded px-4 py-2"
                 />

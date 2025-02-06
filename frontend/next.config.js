@@ -13,4 +13,7 @@ module.exports = withPWA({
       },
     ];
   },
+  images: {
+    domains: ['images.igdb.com'], // Allow IGDB's image domain
+  },
 });

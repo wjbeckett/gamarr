@@ -66,7 +66,7 @@ class MetadataService {
         try {
             const token = await this.getIGDBToken();
             logger.info(`Searching IGDB for: ${query}`);
-            
+    
             const response = await axios({
                 url: 'https://api.igdb.com/v4/games',
                 method: 'POST',
@@ -79,12 +79,12 @@ class MetadataService {
                     where category = 0 & version_parent = null;
                     limit 10;`
             });
-            
+    
             if (response.data && response.data.length > 0) {
                 logger.info(`Received ${response.data.length} results from IGDB`);
                 return response.data;
             }
-            
+    
             logger.info('No matches found in IGDB');
             return [];
         } catch (error) {

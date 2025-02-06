@@ -119,7 +119,7 @@ export default function Search() {
 
             {/* Search Results */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {Array.isArray(searchResults) ? (
+                {isLoading ? null : (
                     searchResults.length > 0 ? (
                         searchResults.map((game) => (
                             <div key={game.name} className="bg-card border border-border-dark rounded-lg overflow-hidden hover:border-primary transition">
@@ -153,14 +153,12 @@ export default function Search() {
                             </div>
                         ))
                     ) : (
-                        <div className="col-span-full text-center py-8 text-text-secondary">
-                            No games found matching your search.
-                        </div>
+                        message && message.type === 'error' ? null : (
+                            <div className="col-span-full text-center py-8 text-text-secondary">
+                                No games found matching your search.
+                            </div>
+                        )
                     )
-                ) : (
-                    <div className="col-span-full text-center py-8 text-red-500">
-                        Error loading search results. Please try again.
-                    </div>
                 )}
             </div>
         </div>

@@ -43,6 +43,7 @@ function initializeDatabase() {
                 description TEXT,
                 destination_path TEXT,
                 status TEXT DEFAULT 'new',
+                cover_url TEXT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )

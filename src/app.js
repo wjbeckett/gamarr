@@ -6,8 +6,8 @@ const Monitor = require('./tasks/monitor');
 const { normalizeDownloadPath } = require('./utils/helpers');
 const path = require('path');
 const app = express();
-//const MetadataService = require('./services/metadataService');
-const { searchGameName } = require('./utils/gameSearch');
+const MetadataService = require('./services/metadata');
+const { searchGameName } = require('./utils/gameSearch'); 
 
 // Add body-parser middleware to parse JSON requests
 app.use(bodyParser.json());
@@ -37,6 +37,35 @@ app.get('/api/search', async (req, res) => {
             error: 'Failed to search for games',
             details: error.message 
         });
+    }
+});
+
+// API endpoint to fetch all games
+app.get('/api/games', async (req, res) => {
+    try {
+        db.all(`
+            SELECT 
+                id,
+                name,
+                release_date,
+                description,
+                destination_path,
+                status,
+                cover_url,
+                created_at,
+                updated_at
+            FROM games
+            ORDER BY created_at DESC
+        `, [], (err, rows) => {
+            if (err) {
+                logger.error('Failed to fetch games:', err);
+                return res.status(500).json({ error: 'Failed to fetch games' });
+            }
+            res.json(rows);
+        });
+    } catch (error) {
+        logger.error('Error fetching games:', error);
+        res.status(500).json({ error: 'Internal server error.' });
     }
 });
 

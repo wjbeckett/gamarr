@@ -6,7 +6,7 @@ const Monitor = require('./tasks/monitor');
 const { normalizeDownloadPath } = require('./utils/helpers');
 const path = require('path');
 const db = require('./db');
-const MetadataService = require('./services/metadata');
+const metadataService = require('./services/metadata');
 const app = express();
 
 // Add body-parser middleware to parse JSON requests
@@ -21,7 +21,6 @@ app.post('/api/search', async (req, res) => {
     }
 
     try {
-        const metadataService = new MetadataService();
         const results = await metadataService.searchGameName(query);
         res.json(results);
     } catch (error) {

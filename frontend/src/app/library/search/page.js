@@ -7,27 +7,29 @@ export default function Search() {
     const [searchResults, setSearchResults] = useState([]);
     const [message, setMessage] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [hasSearched, setHasSearched] = useState(false); // New state to track if a search has been performed
 
     async function handleSearch() {
         if (!searchTerm.trim()) {
             setMessage({ type: 'error', text: 'Please enter a game name.' });
             return;
         }
-    
+
         setIsLoading(true);
         setMessage(null);
         setSearchResults([]);
-    
+        setHasSearched(true); // Mark that a search has been performed
+
         try {
             const response = await fetch('/api/search', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query: searchTerm })
+                body: JSON.stringify({ query: searchTerm }),
             });
-    
+
             const data = await response.json();
             console.log('Search results from backend:', data); // Add this log
-    
+
             if (Array.isArray(data)) {
                 setSearchResults(data);
             } else {
@@ -51,14 +53,14 @@ export default function Search() {
                     release_date: game.releaseDate,
                     description: game.description,
                     destination_path: `/library/${game.name.replace(/[^a-zA-Z0-9]/g, '_')}`,
-                    cover_url: game.cover_url
+                    cover_url: game.cover_url,
                 }),
             });
 
             if (response.ok) {
                 setMessage({ type: 'success', text: `Game "${game.name}" added to library.` });
                 // Remove the game from search results
-                setSearchResults(prev => prev.filter(g => g.name !== game.name));
+                setSearchResults((prev) => prev.filter((g) => g.name !== game.name));
             } else {
                 const error = await response.json();
                 setMessage({ type: 'error', text: error.error || 'Failed to add game to library.' });
@@ -79,7 +81,7 @@ export default function Search() {
     return (
         <div className="p-6 max-w-7xl mx-auto">
             <h1 className="text-3xl font-bold text-text-primary mb-6">Search for a Game</h1>
-            
+
             {/* Search Input and Button */}
             <div className="flex gap-2 mb-6">
                 <input
@@ -101,11 +103,15 @@ export default function Search() {
 
             {/* Messages */}
             {message && (
-                <div className={`p-4 mb-6 rounded ${
-                    message.type === 'success' ? 'bg-green-100 text-green-700' :
-                    message.type === 'error' ? 'bg-red-100 text-red-700' :
-                    'bg-blue-100 text-blue-700'
-                }`}>
+                <div
+                    className={`p-4 mb-6 rounded ${
+                        message.type === 'success'
+                            ? 'bg-green-100 text-green-700'
+                            : message.type === 'error'
+                            ? 'bg-red-100 text-red-700'
+                            : 'bg-blue-100 text-blue-700'
+                    }`}
+                >
                     {message.text}
                 </div>
             )}
@@ -120,9 +126,16 @@ export default function Search() {
             {/* Search Results */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {isLoading ? null : (
-                    searchResults.length > 0 ? (
+                    hasSearched && searchResults.length === 0 ? ( // Only show "No games found" if a search has been performed
+                        <div className="col-span-full text-center py-8 text-text-secondary">
+                            No games found matching your search.
+                        </div>
+                    ) : (
                         searchResults.map((game) => (
-                            <div key={game.name} className="bg-card border border-border-dark rounded-lg overflow-hidden hover:border-primary transition">
+                            <div
+                                key={game.name}
+                                className="bg-card border border-border-dark rounded-lg overflow-hidden hover:border-primary transition"
+                            >
                                 {game.cover_url && (
                                     <div className="relative h-48 w-full">
                                         <Image
@@ -152,12 +165,6 @@ export default function Search() {
                                 </div>
                             </div>
                         ))
-                    ) : (
-                        message && message.type === 'error' ? null : (
-                            <div className="col-span-full text-center py-8 text-text-secondary">
-                                No games found matching your search.
-                            </div>
-                        )
                     )
                 )}
             </div>

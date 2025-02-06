@@ -22,6 +22,7 @@ app.post('/api/search', async (req, res) => {
 
     try {
         const results = await metadataService.searchGameName(query);
+        logger.debug('Search results being sent to client:', results); // Add this log
         res.json(results);
     } catch (error) {
         logger.error('Error searching for games:', error);

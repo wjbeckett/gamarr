@@ -13,28 +13,25 @@ export default function Search() {
             setMessage({ type: 'error', text: 'Please enter a game name.' });
             return;
         }
-
+    
         setIsLoading(true);
         setMessage(null);
         setSearchResults([]);
-
+    
         try {
             const response = await fetch('/api/search', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ query: searchTerm })
             });
-
-            if (!response.ok) {
-                throw new Error('Failed to search for games');
-            }
-
+    
             const data = await response.json();
-            
-            if (data.length === 0) {
-                setMessage({ type: 'info', text: 'No games found.' });
-            } else {
+            console.log('Search results from backend:', data); // Add this log
+    
+            if (Array.isArray(data)) {
                 setSearchResults(data);
+            } else {
+                setMessage({ type: 'error', text: 'Unexpected response format from server.' });
             }
         } catch (error) {
             console.error('Failed to search for games:', error);
@@ -122,37 +119,49 @@ export default function Search() {
 
             {/* Search Results */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {searchResults.map((game) => (
-                    <div key={game.name} className="bg-card border border-border-dark rounded-lg overflow-hidden hover:border-primary transition">
-                        {game.cover_url && (
-                            <div className="relative h-48 w-full">
-                                <Image
-                                    src={game.cover_url}
-                                    alt={game.name}
-                                    fill
-                                    className="object-cover"
-                                />
+                {Array.isArray(searchResults) ? (
+                    searchResults.length > 0 ? (
+                        searchResults.map((game) => (
+                            <div key={game.name} className="bg-card border border-border-dark rounded-lg overflow-hidden hover:border-primary transition">
+                                {game.cover_url && (
+                                    <div className="relative h-48 w-full">
+                                        <Image
+                                            src={game.cover_url}
+                                            alt={game.name}
+                                            fill
+                                            className="object-cover"
+                                        />
+                                    </div>
+                                )}
+                                <div className="p-4">
+                                    <h2 className="text-xl font-bold text-text-primary mb-2">{game.name}</h2>
+                                    {game.releaseDate && (
+                                        <p className="text-sm text-text-secondary mb-2">
+                                            Released: {new Date(game.releaseDate).getFullYear()}
+                                        </p>
+                                    )}
+                                    <p className="text-text-secondary mb-4 line-clamp-3">
+                                        {game.description || 'No description available.'}
+                                    </p>
+                                    <button
+                                        onClick={() => handleAddGame(game)}
+                                        className="w-full bg-primary text-white px-4 py-2 rounded hover:bg-primary-hover transition"
+                                    >
+                                        Add to Library
+                                    </button>
+                                </div>
                             </div>
-                        )}
-                        <div className="p-4">
-                            <h2 className="text-xl font-bold text-text-primary mb-2">{game.name}</h2>
-                            {game.releaseDate && (
-                                <p className="text-sm text-text-secondary mb-2">
-                                    Released: {new Date(game.releaseDate).getFullYear()}
-                                </p>
-                            )}
-                            <p className="text-text-secondary mb-4 line-clamp-3">
-                                {game.description || 'No description available.'}
-                            </p>
-                            <button
-                                onClick={() => handleAddGame(game)}
-                                className="w-full bg-primary text-white px-4 py-2 rounded hover:bg-primary-hover transition"
-                            >
-                                Add to Library
-                            </button>
+                        ))
+                    ) : (
+                        <div className="col-span-full text-center py-8 text-text-secondary">
+                            No games found matching your search.
                         </div>
+                    )
+                ) : (
+                    <div className="col-span-full text-center py-8 text-red-500">
+                        Error loading search results. Please try again.
                     </div>
-                ))}
+                )}
             </div>
         </div>
     );

@@ -84,7 +84,7 @@ function initializeDatabase() {
                 ];
 
                 columnsToAdd.forEach(column => {
-                    db.get(`PRAGMA table_info(games)`, (err, rows) => {
+                    db.all(`PRAGMA table_info(games)`, (err, rows) => {
                         if (err) {
                             logger.error(`Error checking table info for ${column.name}:`, err);
                             return;
@@ -96,7 +96,7 @@ function initializeDatabase() {
                         if (!columnExists) {
                             db.run(`
                                 ALTER TABLE games 
-                                ADD COLUMN ${column.name} ${column.type};
+                                ADD COLUMN ${column.name} ${column.type}
                             `, (err) => {
                                 if (err) {
                                     if (!err.message.includes('duplicate column name')) {
@@ -106,6 +106,82 @@ function initializeDatabase() {
                                     logger.info(`Added ${column.name} column to games table`);
                                 }
                             });
+                        }
+                    });
+                });
+            }
+        });
+
+        // Create indexers table
+        db.run(`
+            CREATE TABLE IF NOT EXISTS indexers (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                url TEXT NOT NULL,
+                api_key TEXT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        `, (err) => {
+            if (err) {
+                logger.error('Failed to create indexers table:', err);
+            } else {
+                logger.info('Indexers table initialized successfully.');
+            }
+        });
+
+        // Create download_clients table
+        db.run(`
+            CREATE TABLE IF NOT EXISTS download_clients (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                type TEXT NOT NULL,
+                url TEXT NOT NULL,
+                username TEXT,
+                password TEXT,
+                api_key TEXT,
+                category TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        `, (err) => {
+            if (err) {
+                logger.error('Failed to create download_clients table:', err);
+            } else {
+                logger.info('Download clients table initialized successfully.');
+            }
+        });
+
+        // Create general_settings table
+        db.run(`
+            CREATE TABLE IF NOT EXISTS general_settings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                key TEXT NOT NULL UNIQUE,
+                value TEXT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        `, (err) => {
+            if (err) {
+                logger.error('Failed to create general_settings table:', err);
+            } else {
+                logger.info('General settings table initialized successfully.');
+
+                // Add default settings if they don't exist
+                const defaultSettings = [
+                    { key: 'default_download_path', value: '/app/downloads' },
+                    { key: 'default_library_path', value: '/app/library' }
+                ];
+
+                defaultSettings.forEach(setting => {
+                    db.run(`
+                        INSERT OR IGNORE INTO general_settings (key, value)
+                        VALUES (?, ?)
+                    `, [setting.key, setting.value], (err) => {
+                        if (err) {
+                            logger.error(`Error adding default setting ${setting.key}:`, err);
+                        } else {
+                            logger.info(`Default setting ${setting.key} initialized`);
                         }
                     });
                 });

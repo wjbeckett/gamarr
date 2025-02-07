@@ -117,15 +117,15 @@ export default function Sidebar() {
               <ul className="ml-9 mt-2 space-y-2 border-l border-border-dark">
                   <li>
                   <Link
-                      href="/settings/media"
+                      href="/settings/game-management"
                       className={`block pl-4 py-2 text-sm rounded-md transition-colors ${
-                      isActive('/settings/media')
+                      isActive('/settings/game-management')
                           ? 'text-primary'
                           : 'text-text-secondary hover:text-text-primary'
                       }`}
                       onClick={() => setIsSidebarOpen(false)}
                   >
-                      Media Management
+                      Game Management
                   </Link>
                   </li>
                   <li>

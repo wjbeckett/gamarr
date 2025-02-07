@@ -224,6 +224,8 @@ app.get('/api/tasks/:id/progress', async (req, res) => {
     }
 });
 
+
+
 // Serve static files (if needed)
 app.use(express.static(path.join(__dirname, 'public')));
 

@@ -241,4 +241,55 @@ router.delete('/library-locations/:id', (req, res) => {
     });
 });
 
+// Get all root folders
+router.get('/root-folders', (req, res) => {
+    db.all('SELECT * FROM root_folders ORDER BY path', [], (err, rows) => {
+        if (err) {
+            logger.error('Failed to fetch root folders:', err);
+            return res.status(500).json({ error: 'Failed to fetch root folders' });
+        }
+        res.json(rows);
+    });
+});
+
+// Add a new root folder
+router.post('/root-folders', (req, res) => {
+    const { path } = req.body;
+    
+    if (!path) {
+        return res.status(400).json({ error: 'Path is required' });
+    }
+
+    db.run(`
+        INSERT INTO root_folders (path)
+        VALUES (?)
+    `, [path], function(err) {
+        if (err) {
+            logger.error('Failed to add root folder:', err);
+            return res.status(500).json({ error: 'Failed to add root folder' });
+        }
+        res.status(201).json({
+            id: this.lastID,
+            path,
+            message: 'Root folder added successfully',
+        });
+    });
+});
+
+// Delete a root folder
+router.delete('/root-folders/:id', (req, res) => {
+    const { id } = req.params;
+
+    db.run('DELETE FROM root_folders WHERE id = ?', [id], function(err) {
+        if (err) {
+            logger.error('Failed to delete root folder:', err);
+            return res.status(500).json({ error: 'Failed to delete root folder' });
+        }
+        if (this.changes === 0) {
+            return res.status(404).json({ error: 'Root folder not found' });
+        }
+        res.json({ message: 'Root folder deleted successfully' });
+    });
+});
+
 module.exports = router;

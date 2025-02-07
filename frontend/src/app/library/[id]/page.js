@@ -5,11 +5,11 @@ import { useState, useEffect } from 'react';
 // New FileLocationInfo component
 function FileLocationInfo({ path, status }) {
     const [exists, setExists] = useState(null);
-    
+
     useEffect(() => {
         async function checkPath() {
             if (!path) return;
-            
+
             try {
                 const response = await fetch(`/api/games/check-path?path=${encodeURIComponent(path)}`);
                 const data = await response.json();
@@ -19,7 +19,7 @@ function FileLocationInfo({ path, status }) {
                 setExists(false);
             }
         }
-        
+
         checkPath();
     }, [path]);
 
@@ -143,9 +143,9 @@ export default function GameDetails() {
                                 <div>
                                     <span className="font-medium">Status:</span> {game.status || 'Not downloaded'}
                                 </div>
-                                {game.library_name && (
+                                {game.root_folder_name && ( // Updated to use root_folder_name
                                     <div>
-                                        <span className="font-medium">Library:</span> {game.library_name}
+                                        <span className="font-medium">Root Folder:</span> {game.root_folder_name}
                                     </div>
                                 )}
                             </div>

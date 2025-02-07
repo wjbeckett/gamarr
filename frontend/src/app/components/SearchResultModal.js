@@ -2,25 +2,25 @@
 import { useState, useEffect } from 'react';
 
 export default function SearchResultModal({ game, isOpen, onClose, onAddGame }) {
-    const [libraryLocations, setLibraryLocations] = useState([]);
-    const [selectedLocation, setSelectedLocation] = useState(null);
+    const [rootFolders, setRootFolders] = useState([]);
+    const [selectedRootFolder, setSelectedRootFolder] = useState(null);
 
     useEffect(() => {
-        async function fetchLibraryLocations() {
+        async function fetchRootFolders() {
             try {
-                const response = await fetch('/api/settings/library-locations');
+                const response = await fetch('/api/settings/root-folders'); // Updated API endpoint
                 const data = await response.json();
-                setLibraryLocations(data);
+                setRootFolders(data);
                 if (data.length > 0) {
-                    setSelectedLocation(data[0].id); // Default to the first location
+                    setSelectedRootFolder(data[0].id); // Default to the first root folder
                 }
             } catch (error) {
-                console.error('Failed to fetch library locations:', error);
+                console.error('Failed to fetch root folders:', error);
             }
         }
 
         if (isOpen) {
-            fetchLibraryLocations();
+            fetchRootFolders();
         }
     }, [isOpen]);
 
@@ -32,7 +32,7 @@ export default function SearchResultModal({ game, isOpen, onClose, onAddGame }) 
         const data = {
             ...game,
             destination_path: formData.get('destination'),
-            library_location_id: selectedLocation,
+            root_folder_id: selectedRootFolder, // Updated to use root_folder_id
             should_search: formData.get('should_search') === 'on'
         };
         onAddGame(data);
@@ -58,16 +58,16 @@ export default function SearchResultModal({ game, isOpen, onClose, onAddGame }) 
                     
                     <div className="mb-4">
                         <label className="block text-sm text-text-secondary mb-2">
-                            Destination Location
+                            Destination Root Folder
                         </label>
                         <select
-                            value={selectedLocation}
-                            onChange={(e) => setSelectedLocation(e.target.value)}
+                            value={selectedRootFolder}
+                            onChange={(e) => setSelectedRootFolder(e.target.value)}
                             className="w-full bg-gray-800 text-white p-2 rounded"
                         >
-                            {libraryLocations.map((location) => (
-                                <option key={location.id} value={location.id}>
-                                    {location.name} ({location.path})
+                            {rootFolders.map((folder) => (
+                                <option key={folder.id} value={folder.id}>
+                                    {folder.path} ({folder.free_space ? `${folder.free_space} GB free` : 'Unknown space'})
                                 </option>
                             ))}
                         </select>

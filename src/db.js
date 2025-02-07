@@ -34,24 +34,25 @@ function initializeDatabase() {
             }
         });
 
-        // Create library_locations table
+        // Create root_folders table (replacing library_locations)
         db.run(`
-            CREATE TABLE IF NOT EXISTS library_locations (
+            CREATE TABLE IF NOT EXISTS root_folders (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
                 path TEXT NOT NULL UNIQUE,
+                free_space INTEGER,
+                unmapped_folders INTEGER DEFAULT 0,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         `, (err) => {
             if (err) {
-                logger.error('Failed to create library_locations table:', err);
+                logger.error('Failed to create root_folders table:', err);
             } else {
-                logger.info('Library locations table initialized successfully.');
+                logger.info('Root folders table initialized successfully.');
             }
         });
 
-        // Create games table with library_location_id
+        // Create games table with root_folder_id
         db.run(`
             CREATE TABLE IF NOT EXISTS games (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -60,55 +61,17 @@ function initializeDatabase() {
                 description TEXT,
                 destination_path TEXT,
                 status TEXT DEFAULT 'new',
-                library_location_id INTEGER,
+                root_folder_id INTEGER,
+                cover_url TEXT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (library_location_id) REFERENCES library_locations(id)
+                FOREIGN KEY (root_folder_id) REFERENCES root_folders(id)
             )
         `, (err) => {
             if (err) {
                 logger.error('Failed to create games table:', err);
             } else {
                 logger.info('Games table initialized successfully.');
-                
-                // Add any missing columns
-                const columnsToAdd = [
-                    {
-                        name: 'cover_url',
-                        type: 'TEXT'
-                    },
-                    {
-                        name: 'library_location_id',
-                        type: 'INTEGER REFERENCES library_locations(id)'
-                    }
-                ];
-
-                columnsToAdd.forEach(column => {
-                    db.all(`PRAGMA table_info(games)`, (err, rows) => {
-                        if (err) {
-                            logger.error(`Error checking table info for ${column.name}:`, err);
-                            return;
-                        }
-
-                        // Check if column exists
-                        const columnExists = rows.some(row => row.name === column.name);
-                        
-                        if (!columnExists) {
-                            db.run(`
-                                ALTER TABLE games 
-                                ADD COLUMN ${column.name} ${column.type}
-                            `, (err) => {
-                                if (err) {
-                                    if (!err.message.includes('duplicate column name')) {
-                                        logger.error(`Error adding ${column.name} column:`, err);
-                                    }
-                                } else {
-                                    logger.info(`Added ${column.name} column to games table`);
-                                }
-                            });
-                        }
-                    });
-                });
             }
         });
 
@@ -170,7 +133,7 @@ function initializeDatabase() {
                 // Add default settings if they don't exist
                 const defaultSettings = [
                     { key: 'default_download_path', value: '/app/downloads' },
-                    { key: 'default_library_path', value: '/app/library' }
+                    { key: 'default_root_folder', value: '/app/library' }
                 ];
 
                 defaultSettings.forEach(setting => {
@@ -188,22 +151,22 @@ function initializeDatabase() {
             }
         });
 
-        // Add default library location if none exists
-        db.get(`SELECT COUNT(*) as count FROM library_locations`, (err, row) => {
+        // Add default root folder if none exists
+        db.get(`SELECT COUNT(*) as count FROM root_folders`, (err, row) => {
             if (err) {
-                logger.error('Error checking library locations:', err);
+                logger.error('Error checking root folders:', err);
                 return;
             }
 
             if (row.count === 0) {
                 db.run(`
-                    INSERT INTO library_locations (name, path)
-                    VALUES (?, ?)
-                `, ['Default Library', '/app/library'], (err) => {
+                    INSERT INTO root_folders (path)
+                    VALUES (?)
+                `, ['/app/library'], (err) => {
                     if (err) {
-                        logger.error('Error adding default library location:', err);
+                        logger.error('Error adding default root folder:', err);
                     } else {
-                        logger.info('Added default library location');
+                        logger.info('Added default root folder');
                     }
                 });
             }

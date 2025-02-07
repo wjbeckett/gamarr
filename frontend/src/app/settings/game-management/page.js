@@ -5,7 +5,7 @@ export default function MediaManagementPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="border-b border-border-dark pb-4">
-        <h1 className="text-2xl font-semibold">Media Management</h1>
+        <h1 className="text-2xl font-semibold">Game Management</h1>
       </div>
 
       {/* Settings Sections */}

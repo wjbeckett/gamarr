@@ -1,16 +1,39 @@
 'use client';
-import { motion } from 'framer-motion';
+import React from 'react';
+import LibraryLocations from '../components/settings/LibraryLocations';
+import Indexers from '../components/settings/Indexers';
+import DownloadClients from '../components/settings/DownloadClients';
+import MetadataSettings from '../components/settings/MetadataSettings';
+import GeneralSettings from '../components/settings/GeneralSettings';
 
-export default function Settings() {
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="p-6"
-    >
-      <h1 className="text-2xl font-bold text-text-primary mb-4">Settings</h1>
-      <p className="text-text-secondary">Configure your Gamarr settings here.</p>
-    </motion.div>
-  );
-}
+const SettingsPage = () => {
+    return (
+        <div className="p-6">
+            <h1 className="text-2xl font-bold mb-6">Settings</h1>
+            <div className="space-y-8">
+                <div>
+                    <h2 className="text-xl font-semibold mb-4">General Settings</h2>
+                    <GeneralSettings />
+                </div>
+                <div>
+                    <h2 className="text-xl font-semibold mb-4">Library Locations</h2>
+                    <LibraryLocations />
+                </div>
+                <div>
+                    <h2 className="text-xl font-semibold mb-4">Indexers</h2>
+                    <Indexers />
+                </div>
+                <div>
+                    <h2 className="text-xl font-semibold mb-4">Download Clients</h2>
+                    <DownloadClients />
+                </div>
+                <div>
+                    <h2 className="text-xl font-semibold mb-4">Metadata Settings</h2>
+                    <MetadataSettings />
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default SettingsPage;

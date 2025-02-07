@@ -1,4 +1,3 @@
-// components/LibraryLocations.js
 'use client';
 import { useState, useEffect } from 'react';
 
@@ -39,7 +38,7 @@ export default function LibraryLocations({ value, onChange }) {
     }
 
     return (
-        <select 
+        <select
             value={value}
             onChange={(e) => onChange(e.target.value)}
             className="w-full border border-border-dark bg-card text-text-primary rounded px-4 py-2"

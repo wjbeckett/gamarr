@@ -9,9 +9,12 @@ const db = require('./db');
 const metadataService = require('./services/metadata');
 const app = express();
 const fs = require('fs');
+const settingsRouter = require('./routes/settings');
 
 // Add body-parser middleware to parse JSON requests
 app.use(bodyParser.json());
+
+app.use('/api/settings', settingsRouter);
 
 // POST endpoint to search for games
 app.post('/api/search', async (req, res) => {

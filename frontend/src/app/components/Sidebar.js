@@ -114,74 +114,87 @@ export default function Sidebar() {
 
               {/* Settings Sub-menu */}
               {isSettingsOpen && (
-                <ul className="ml-9 mt-2 space-y-2 border-l border-border-dark">
+              <ul className="ml-9 mt-2 space-y-2 border-l border-border-dark">
                   <li>
-                    <Link
-                      href="/settings/general"
+                  <Link
+                      href="/settings/media"
                       className={`block pl-4 py-2 text-sm rounded-md transition-colors ${
-                        isActive('/settings/general')
+                      isActive('/settings/media')
                           ? 'text-primary'
                           : 'text-text-secondary hover:text-text-primary'
                       }`}
-                      onClick={() => setIsSidebarOpen(false)} // Close sidebar on mobile
-                    >
-                      General
-                    </Link>
+                      onClick={() => setIsSidebarOpen(false)}
+                  >
+                      Media Management
+                  </Link>
                   </li>
                   <li>
-                    <Link
-                      href="/settings/library-locations"
+                  <Link
+                      href="/settings/root-folders"
                       className={`block pl-4 py-2 text-sm rounded-md transition-colors ${
-                        isActive('/settings/library-locations')
+                      isActive('/settings/root-folders')
                           ? 'text-primary'
                           : 'text-text-secondary hover:text-text-primary'
                       }`}
-                      onClick={() => setIsSidebarOpen(false)} // Close sidebar on mobile
-                    >
-                      Library Locations
-                    </Link>
+                      onClick={() => setIsSidebarOpen(false)}
+                  >
+                      Root Folders
+                  </Link>
                   </li>
                   <li>
-                    <Link
+                  <Link
                       href="/settings/indexers"
                       className={`block pl-4 py-2 text-sm rounded-md transition-colors ${
-                        isActive('/settings/indexers')
+                      isActive('/settings/indexers')
                           ? 'text-primary'
                           : 'text-text-secondary hover:text-text-primary'
                       }`}
-                      onClick={() => setIsSidebarOpen(false)} // Close sidebar on mobile
-                    >
+                      onClick={() => setIsSidebarOpen(false)}
+                  >
                       Indexers
-                    </Link>
+                  </Link>
                   </li>
                   <li>
-                    <Link
+                  <Link
                       href="/settings/download-clients"
                       className={`block pl-4 py-2 text-sm rounded-md transition-colors ${
-                        isActive('/settings/download-clients')
+                      isActive('/settings/download-clients')
                           ? 'text-primary'
                           : 'text-text-secondary hover:text-text-primary'
                       }`}
-                      onClick={() => setIsSidebarOpen(false)} // Close sidebar on mobile
-                    >
+                      onClick={() => setIsSidebarOpen(false)}
+                  >
                       Download Clients
-                    </Link>
+                  </Link>
                   </li>
                   <li>
-                    <Link
+                  <Link
                       href="/settings/metadata"
                       className={`block pl-4 py-2 text-sm rounded-md transition-colors ${
-                        isActive('/settings/metadata')
+                      isActive('/settings/metadata')
                           ? 'text-primary'
                           : 'text-text-secondary hover:text-text-primary'
                       }`}
-                      onClick={() => setIsSidebarOpen(false)} // Close sidebar on mobile
-                    >
+                      onClick={() => setIsSidebarOpen(false)}
+                  >
                       Metadata
-                    </Link>
+                  </Link>
                   </li>
-                </ul>
-              )}
+                  <li>
+                  <Link
+                      href="/settings/general"
+                      className={`block pl-4 py-2 text-sm rounded-md transition-colors ${
+                      isActive('/settings/general')
+                          ? 'text-primary'
+                          : 'text-text-secondary hover:text-text-primary'
+                      }`}
+                      onClick={() => setIsSidebarOpen(false)}
+                  >
+                      General
+                  </Link>
+                  </li>
+              </ul>
+            )}
             </li>
           </ul>
         </nav>

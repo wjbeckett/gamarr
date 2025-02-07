@@ -1,37 +1,61 @@
 'use client';
 import React from 'react';
-import LibraryLocations from '../components/settings/LibraryLocations';
-import Indexers from '../components/settings/Indexers';
-import DownloadClients from '../components/settings/DownloadClients';
-import MetadataSettings from '../components/settings/MetadataSettings';
-import GeneralSettings from '../components/settings/GeneralSettings';
+import { useRouter } from 'next/navigation';
 
-const SettingsPage = () => {
+const SettingsPage = ({ children }) => {
+    const router = useRouter();
+
     return (
-        <div className="p-6">
-            <h1 className="text-2xl font-bold mb-6">Settings</h1>
-            <div className="space-y-8">
-                <div>
-                    <h2 className="text-xl font-semibold mb-4">General Settings</h2>
-                    <GeneralSettings />
-                </div>
-                <div>
-                    <h2 className="text-xl font-semibold mb-4">Library Locations</h2>
-                    <LibraryLocations />
-                </div>
-                <div>
-                    <h2 className="text-xl font-semibold mb-4">Indexers</h2>
-                    <Indexers />
-                </div>
-                <div>
-                    <h2 className="text-xl font-semibold mb-4">Download Clients</h2>
-                    <DownloadClients />
-                </div>
-                <div>
-                    <h2 className="text-xl font-semibold mb-4">Metadata Settings</h2>
-                    <MetadataSettings />
-                </div>
-            </div>
+        <div className="flex h-full">
+            {/* Side Menu */}
+            <aside className="w-1/4 bg-gray-800 text-white p-4">
+                <h2 className="text-lg font-bold mb-4">Settings</h2>
+                <ul className="space-y-2">
+                    <li>
+                        <button
+                            onClick={() => router.push('/settings/general')}
+                            className="w-full text-left hover:bg-gray-700 p-2 rounded"
+                        >
+                            General Settings
+                        </button>
+                    </li>
+                    <li>
+                        <button
+                            onClick={() => router.push('/settings/library-locations')}
+                            className="w-full text-left hover:bg-gray-700 p-2 rounded"
+                        >
+                            Library Locations
+                        </button>
+                    </li>
+                    <li>
+                        <button
+                            onClick={() => router.push('/settings/indexers')}
+                            className="w-full text-left hover:bg-gray-700 p-2 rounded"
+                        >
+                            Indexers
+                        </button>
+                    </li>
+                    <li>
+                        <button
+                            onClick={() => router.push('/settings/download-clients')}
+                            className="w-full text-left hover:bg-gray-700 p-2 rounded"
+                        >
+                            Download Clients
+                        </button>
+                    </li>
+                    <li>
+                        <button
+                            onClick={() => router.push('/settings/metadata')}
+                            className="w-full text-left hover:bg-gray-700 p-2 rounded"
+                        >
+                            Metadata Settings
+                        </button>
+                    </li>
+                </ul>
+            </aside>
+
+            {/* Content Area */}
+            <main className="w-3/4 p-6 bg-gray-100">{children}</main>
         </div>
     );
 };

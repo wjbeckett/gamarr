@@ -26,7 +26,7 @@ export default function Indexers() {
 
     const handleAddIndexer = async () => {
         if (!newIndexer.name || !newIndexer.url || !newIndexer.api_key) return;
-
+    
         try {
             const response = await fetch('/api/settings/indexers', {
                 method: 'POST',
@@ -35,6 +35,9 @@ export default function Indexers() {
             });
             if (!response.ok) throw new Error('Failed to add indexer');
             const addedIndexer = await response.json();
+    
+            // Ensure the response contains the expected data
+            if (!addedIndexer || !addedIndexer.id) throw new Error('Invalid response format');
             setIndexers([...indexers, addedIndexer]);
             setNewIndexer({ name: '', url: '', api_key: '' });
         } catch (err) {

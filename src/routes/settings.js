@@ -64,9 +64,12 @@ router.post('/indexers', (req, res) => {
             logger.error('Failed to add indexer:', err);
             return res.status(500).json({ error: 'Failed to add indexer' });
         }
-        res.status(201).json({ 
+        res.status(201).json({
             id: this.lastID,
-            message: 'Indexer added successfully' 
+            name,
+            url,
+            api_key,
+            message: 'Indexer added successfully',
         });
     });
 });
@@ -185,6 +188,56 @@ router.delete('/download-clients/:id', (req, res) => {
             return res.status(404).json({ error: 'Download client not found' });
         }
         res.json({ message: 'Download client deleted successfully' });
+    });
+});
+
+// Get all library locations
+router.get('/library-locations', (req, res) => {
+    db.all('SELECT * FROM library_locations ORDER BY name', [], (err, rows) => {
+        if (err) {
+            logger.error('Failed to fetch library locations:', err);
+            return res.status(500).json({ error: 'Failed to fetch library locations' });
+        }
+        res.json(rows);
+    });
+});
+
+// Add a new library location
+router.post('/library-locations', (req, res) => {
+    const { name, path } = req.body;
+
+    if (!name || !path) {
+        return res.status(400).json({ error: 'Name and path are required' });
+    }
+
+    db.run(`
+        INSERT INTO library_locations (name, path)
+        VALUES (?, ?)
+    `, [name, path], function(err) {
+        if (err) {
+            logger.error('Failed to add library location:', err);
+            return res.status(500).json({ error: 'Failed to add library location' });
+        }
+        res.status(201).json({
+            id: this.lastID,
+            message: 'Library location added successfully',
+        });
+    });
+});
+
+// Delete a library location
+router.delete('/library-locations/:id', (req, res) => {
+    const { id } = req.params;
+
+    db.run('DELETE FROM library_locations WHERE id = ?', [id], function(err) {
+        if (err) {
+            logger.error('Failed to delete library location:', err);
+            return res.status(500).json({ error: 'Failed to delete library location' });
+        }
+        if (this.changes === 0) {
+            return res.status(404).json({ error: 'Library location not found' });
+        }
+        res.json({ message: 'Library location deleted successfully' });
     });
 });
 

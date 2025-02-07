@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 
-export default function LibraryLocations({ value, onChange }) {
+export default function LibraryLocations() {
     const [locations, setLocations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -12,11 +12,10 @@ export default function LibraryLocations({ value, onChange }) {
                 const response = await fetch('/api/settings/library-locations');
                 if (!response.ok) throw new Error('Failed to fetch locations');
                 const data = await response.json();
+
+                // Ensure the response is an array
+                if (!Array.isArray(data)) throw new Error('Invalid response format');
                 setLocations(data);
-                // Set default value if none provided
-                if (!value && data.length > 0) {
-                    onChange(data[0].path);
-                }
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -29,25 +28,17 @@ export default function LibraryLocations({ value, onChange }) {
 
     if (loading) return <div>Loading locations...</div>;
     if (error) return <div>Error loading locations: {error}</div>;
-    if (locations.length === 0) {
-        return (
-            <div className="text-yellow-500">
-                No library locations configured. Please add locations in settings.
-            </div>
-        );
-    }
 
     return (
-        <select
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            className="w-full border border-border-dark bg-card text-text-primary rounded px-4 py-2"
-        >
-            {locations.map((location) => (
-                <option key={location.id} value={location.path}>
-                    {location.name} ({location.path})
-                </option>
-            ))}
-        </select>
+        <div>
+            <h2 className="text-xl font-semibold mb-4">Library Locations</h2>
+            <ul>
+                {locations.map((location) => (
+                    <li key={location.id} className="mb-2">
+                        {location.name} ({location.path})
+                    </li>
+                ))}
+            </ul>
+        </div>
     );
 }

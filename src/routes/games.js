@@ -1,0 +1,271 @@
+const express = require('express');
+const router = express.Router();
+const db = require('../db');
+const logger = require('../config/logger');
+const fs = require('fs-extra');
+const path = require('path');
+
+// Get all games (with versions)
+router.get('/', (req, res) => {
+    db.all(`
+    SELECT 
+    g.*,
+    r.path as root_folder_name
+    FROM games g
+    LEFT JOIN root_folders r ON g.root_folder_id = r.id
+    `, async (err, rows) => {
+        if (err) {
+            logger.error('Error fetching games:', err);
+            return res.status(500).json({ error: 'Failed to fetch games' });
+        }
+
+        try {
+            const gamesWithVersions = await Promise.all(
+                rows.map(async (game) => {
+                    let latestVersion = null;
+                    let allVersions = [];
+                    let status = 'new'; // Default status
+            
+                    if (game.destination_path && fs.existsSync(game.destination_path)) {
+                        try {
+                            const subfolders = fs.readdirSync(game.destination_path)
+                                .filter(item => {
+                                    const itemPath = path.join(game.destination_path, item);
+                                    return fs.statSync(itemPath).isDirectory();
+                                });
+            
+                            // Extract version numbers from subfolder names
+                            const versions = subfolders
+                                .map(folder => {
+                                    const match = folder.match(/^v?(\d+\.\d+\.\d+\.\d+)/);
+                                    return match ? {
+                                        folder,
+                                        version: match[1],
+                                        path: path.join(game.destination_path, folder)
+                                    } : null;
+                                })
+                                .filter(Boolean)
+                                .sort((a, b) => {
+                                    return b.version.localeCompare(a.version, undefined, 
+                                    { numeric: true, sensitivity: 'base' });
+                                });
+            
+                            if (versions.length > 0) {
+                                latestVersion = versions[0].version;
+                                allVersions = versions.map(v => ({
+                                    version: v.version,
+                                    path: v.path
+                                }));
+                                // Update status to 'completed' if we found version folders
+                                status = 'completed';
+                            } else {
+                                // Path exists but no version folders found
+                                status = 'pending';
+                            }
+                        } catch (error) {
+                            logger.error(`Error reading versions for game ${game.name}:`, error);
+                            status = 'error';
+                        }
+                    } else {
+                        // Path doesn't exist
+                        status = 'missing';
+                    }
+            
+                    return {
+                        ...game,
+                        latestVersion,
+                        allVersions,
+                        status // Include the calculated status
+                    };
+                })
+            );
+
+            res.json(gamesWithVersions);
+        } catch (error) {
+            logger.error('Error processing games:', error);
+            res.status(500).json({ error: 'Failed to process games' });
+        }
+    });
+});
+
+// Get game details
+router.get('/:id', async (req, res) => {
+    const { id } = req.params;
+    
+    db.get(`
+        SELECT 
+            g.*,
+            r.path as root_folder_name
+        FROM games g
+        LEFT JOIN root_folders r ON g.root_folder_id = r.id
+        WHERE g.id = ?
+    `, [id], async (err, game) => {
+        if (err) {
+            logger.error('Error fetching game:', err);
+            return res.status(500).json({ error: 'Failed to fetch game details' });
+        }
+        if (!game) {
+            return res.status(404).json({ error: 'Game not found' });
+        }
+
+        try {
+            const metadataService = require('../services/metadata');
+            const searchResults = await metadataService.searchGameName(game.name);
+            const metadata = searchResults[0] || null;
+
+            const enrichedGame = {
+                ...game,
+                latestVersion: game.latestVersion || 'Unknown',
+                metadata: metadata ? {
+                    genres: metadata.genres || [],
+                    platforms: metadata.platforms || [],
+                    developers: metadata.developers || [],
+                    publishers: metadata.publishers || [],
+                    rating: metadata.rating,
+                    gameModes: metadata.gameModes || [],
+                    screenshots: metadata.screenshots || [],
+                    description: metadata.description || game.description,
+                    releaseYear: metadata.releaseYear || 'Unknown'
+                } : null
+            };
+
+            res.json(enrichedGame);
+        } catch (error) {
+            logger.error('Error fetching additional metadata:', error);
+            res.json(game); // Return basic game info if metadata fetch fails
+        }
+    });
+});
+
+// Delete game
+router.delete('/:id', async (req, res) => {
+    const { id } = req.params;
+    const { deleteFiles } = req.body;
+
+    try {
+        // Get game details first
+        const game = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM games WHERE id = ?', [id], (err, row) => {
+                if (err) reject(err);
+                resolve(row);
+            });
+        });
+
+        if (!game) {
+            return res.status(404).json({ error: 'Game not found' });
+        }
+
+        // Delete files if requested
+        if (deleteFiles && game.destination_path) {
+            try {
+                await fs.remove(game.destination_path);
+                logger.info(`Deleted files at: ${game.destination_path}`);
+            } catch (error) {
+                logger.error(`Error deleting files: ${error.message}`);
+                // Don't return here - continue with database deletion
+            }
+        }
+
+        // Delete from database
+        await new Promise((resolve, reject) => {
+            db.run('DELETE FROM games WHERE id = ?', [id], (err) => {
+                if (err) reject(err);
+                resolve();
+            });
+        });
+
+        res.json({ 
+            message: 'Game deleted successfully',
+            deletedFiles: deleteFiles && game.destination_path ? true : false
+        });
+
+    } catch (error) {
+        logger.error('Error deleting game:', error);
+        res.status(500).json({ error: 'Failed to delete game' });
+    }
+});
+
+// Check path exists (for FileLocationInfo component)
+router.get('/check-path', (req, res) => {
+    const { path: gamePath } = req.query;
+
+    if (!gamePath) {
+        return res.status(400).json({ error: 'Path is required' });
+    }
+
+    try {
+        const exists = fs.existsSync(gamePath);
+        res.json({ exists });
+    } catch (error) {
+        console.error('Error checking path:', error);
+        res.status(500).json({ error: 'Failed to check path' });
+    }
+});
+
+router.get('/:id/version', (req, res) => {
+    const { id } = req.params;
+    
+    // First get the game to find its path
+    db.get('SELECT destination_path FROM games WHERE id = ?', [id], (err, game) => {
+        if (err) {
+            logger.error('Error fetching game:', err);
+            return res.status(500).json({ error: 'Failed to fetch game' });
+        }
+        
+        if (!game || !game.destination_path) {
+            return res.status(404).json({ error: 'Game or path not found' });
+        }
+
+        try {
+            const subfolders = fs.readdirSync(game.destination_path)
+                .filter(item => {
+                    const itemPath = path.join(game.destination_path, item);
+                    return fs.statSync(itemPath).isDirectory();
+                });
+
+            // Extract version numbers from subfolder names
+            const versions = subfolders
+                .map(folder => {
+                    const match = folder.match(/^v?(\d+\.\d+\.\d+\.\d+)/);
+                    return match ? {
+                        folder,
+                        version: match[1],
+                        path: path.join(game.destination_path, folder)
+                    } : null;
+                })
+                .filter(Boolean)
+                .sort((a, b) => {
+                    return b.version.localeCompare(a.version, undefined, 
+                        { numeric: true, sensitivity: 'base' });
+                });
+
+            if (versions.length > 0) {
+                res.json({
+                    version: versions[0].version,
+                    path: versions[0].path,
+                    allVersions: versions.map(v => ({
+                        version: v.version,
+                        path: v.path
+                    }))
+                });
+            } else {
+                res.json({ version: null, allVersions: [] });
+            }
+        } catch (error) {
+            logger.error('Error reading game directory:', error);
+            res.status(500).json({ error: 'Failed to read game directory' });
+        }
+    });
+});
+
+// Force search (TODO)
+router.post('/:id/search', (req, res) => {
+    // Implement force search functionality
+});
+
+// Download (TODO)
+router.post('/:id/download', (req, res) => {
+    // Implement download functionality
+});
+
+module.exports = router;

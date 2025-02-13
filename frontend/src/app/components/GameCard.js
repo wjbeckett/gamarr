@@ -48,11 +48,13 @@ export default function GameCard({ game, onClick, showVersion = true }) { // Add
                 </h2>
                 {showVersion && game.latestVersion && ( // Only show version if showVersion is true
                     <div className="text-xs text-text-secondary mb-1">
+                        <i className="fas fa-code-branch text-primary mt-1 mr-3 w-5" />
                         Version: v{game.latestVersion}
                     </div>
                 )}
                 <div className="flex justify-between items-center">
                     <span className="text-xs text-text-secondary">
+                        <i className="fas fa-calendar-alt mr-2" />
                         {game.metadata?.releaseYear || game.release_date 
                             ? (game.metadata?.releaseYear || new Date(game.release_date).getFullYear())
                             : 'Unknown'}

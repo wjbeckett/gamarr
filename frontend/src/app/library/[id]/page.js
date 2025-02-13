@@ -195,29 +195,53 @@ export default function GameDetails() {
                             </div>
                         </div>
 
-                        {/* Main Content */}
+                        {/* Main Content Grid */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            {/* Left Column */}
+                            {/* Left Column - File Information */}
                             <div className="lg:col-span-1 space-y-6">
-                                <FileLocationInfo 
-                                    path={game.destination_path}
-                                    libraryLocation={game.root_folder_name}
-                                    status={game.status}
-                                    gameId={game.id}
-                                />
-                                
+                                {/* File Information Card */}
+                                <div className="bg-card rounded-xl p-6 shadow-lg">
+                                    <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center">
+                                        <i className="fas fa-folder-open mr-2" />
+                                        File Information
+                                    </h3>
+                                    <div className="space-y-4">
+                                        <div className="flex items-start">
+                                            <i className="fas fa-folder text-primary mt-1 mr-3 w-5" />
+                                            <div>
+                                                <span className="text-text-secondary text-sm">Path</span>
+                                                <p className="text-text-primary break-all">{game.destination_path || 'Not set'}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-start">
+                                            <i className="fas fa-code-branch text-primary mt-1 mr-3 w-5" />
+                                            <div>
+                                                <span className="text-text-secondary text-sm">Version</span>
+                                                <p className="text-text-primary">{game.latestVersion ? `v${game.latestVersion}` : 'Unknown'}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-start">
+                                            <i className="fas fa-info-circle text-primary mt-1 mr-3 w-5" />
+                                            <div>
+                                                <span className="text-text-secondary text-sm">Status</span>
+                                                <p className="text-text-primary">{game.status || 'Not downloaded'}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 {/* Action Buttons */}
                                 <div className="bg-card rounded-xl p-6 shadow-lg space-y-3">
                                     <button
                                         className="w-full bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition flex items-center justify-center"
-                                        onClick={() => console.log('Force search')}
+                                        onClick={() => {/* TODO: Implement force search */}}
                                     >
                                         <i className="fas fa-sync-alt mr-2" /> Force Search
                                     </button>
                                     {game.status !== 'downloading' && (
                                         <button
                                             className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center justify-center"
-                                            onClick={() => console.log('Download')}
+                                            onClick={() => {/* TODO: Implement download */}}
                                         >
                                             <i className="fas fa-download mr-2" /> Download
                                         </button>
@@ -231,9 +255,9 @@ export default function GameDetails() {
                                 </div>
                             </div>
 
-                            {/* Right Column */}
+                            {/* Right Column - Game Details and Screenshots */}
                             <div className="lg:col-span-2 space-y-6">
-                                {/* Description */}
+                                {/* Game Description */}
                                 <div className="bg-card rounded-xl p-6 shadow-lg">
                                     <p className="text-text-secondary">
                                         {game.metadata?.description || game.description || 'No description available'}
@@ -242,29 +266,71 @@ export default function GameDetails() {
 
                                 {/* Game Details */}
                                 <div className="bg-card rounded-xl p-6 shadow-lg">
-                                    <h3 className="text-lg font-semibold text-text-primary mb-4">
+                                    <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center">
                                         <i className="fas fa-gamepad mr-2" />
                                         Game Details
                                     </h3>
                                     <div className="grid grid-cols-2 gap-4">
                                         {game.metadata?.developers?.length > 0 && (
                                             <div>
-                                                <span className="text-text-secondary text-sm">
+                                                <span className="text-text-secondary text-sm flex items-center">
                                                     <i className="fas fa-code mr-2" /> Developers
                                                 </span>
-                                                <p className="text-text-primary">
-                                                    {game.metadata.developers.join(', ')}
-                                                </p>
+                                                <p className="text-text-primary">{game.metadata.developers.join(', ')}</p>
                                             </div>
                                         )}
-                                        {/* Other details sections */}
+                                        {game.metadata?.publishers?.length > 0 && (
+                                            <div>
+                                                <span className="text-text-secondary text-sm flex items-center">
+                                                    <i className="fas fa-building mr-2" /> Publishers
+                                                </span>
+                                                <p className="text-text-primary">{game.metadata.publishers.join(', ')}</p>
+                                            </div>
+                                        )}
+                                        {game.metadata?.genres?.length > 0 && (
+                                            <div>
+                                                <span className="text-text-secondary text-sm flex items-center">
+                                                    <i className="fas fa-tags mr-2" /> Genres
+                                                </span>
+                                                <p className="text-text-primary">{game.metadata.genres.join(', ')}</p>
+                                            </div>
+                                        )}
+                                        {game.metadata?.platforms?.length > 0 && (
+                                            <div>
+                                                <span className="text-text-secondary text-sm flex items-center">
+                                                    <i className="fas fa-desktop mr-2" /> Platforms
+                                                </span>
+                                                <p className="text-text-primary">{game.metadata.platforms.join(', ')}</p>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
+
+                                {/* Game Modes */}
+                                {game.metadata?.gameModes?.length > 0 && (
+                                    <div className="bg-card rounded-xl p-6 shadow-lg">
+                                        <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center">
+                                            <i className="fas fa-users mr-2" />
+                                            Game Modes
+                                        </h3>
+                                        <div className="flex flex-wrap gap-2">
+                                            {game.metadata.gameModes.map((mode, index) => (
+                                                <span
+                                                    key={index}
+                                                    className="bg-primary/20 text-primary px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-primary/30 transition-colors"
+                                                    onClick={() => router.push(`/library?mode=${mode}`)}
+                                                >
+                                                    {mode}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* Screenshots */}
                                 {game.metadata?.screenshots?.length > 0 && (
                                     <div className="bg-card rounded-xl p-6 shadow-lg">
-                                        <h3 className="text-lg font-semibold text-text-primary mb-4">
+                                        <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center">
                                             <i className="fas fa-images mr-2" />
                                             Screenshots
                                         </h3>

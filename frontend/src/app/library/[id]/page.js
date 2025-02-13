@@ -166,10 +166,10 @@ export default function GameDetails() {
                 <div className="absolute bottom-0 left-0 right-0 p-8">
                     <h1 className="text-4xl font-bold text-text-primary mb-2">{game.name}</h1>
                     <div className="flex items-center gap-4 text-text-secondary">
-                    {(game.metadata?.releaseYear || game.releaseDate) && (
+                    {(game.metadata?.releaseYear || game.release_date) && (
                         <span className="flex items-center">
                             <i className="fas fa-calendar-alt mr-2" />
-                            {game.metadata?.releaseYear || new Date(game.releaseDate).getFullYear()}
+                            {game.metadata?.releaseYear || new Date(game.release_date).getFullYear()}
                         </span>
                     )}
                         {game.metadata?.rating && (

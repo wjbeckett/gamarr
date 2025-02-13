@@ -46,11 +46,6 @@ export default function GameCard({ game, onClick, showVersion = true }) { // Add
                 <h2 className="text-base font-semibold text-text-primary mb-1 line-clamp-1">
                     {game.name}
                 </h2>
-                {game.root_folder_name && (
-                    <div className="text-xs text-text-secondary mb-1">
-                        Root: {game.root_folder_name}
-                    </div>
-                )}
                 {showVersion && game.latestVersion && ( // Only show version if showVersion is true
                     <div className="text-xs text-text-secondary mb-1">
                         Version: v{game.latestVersion}
@@ -58,8 +53,8 @@ export default function GameCard({ game, onClick, showVersion = true }) { // Add
                 )}
                 <div className="flex justify-between items-center">
                     <span className="text-xs text-text-secondary">
-                        {game.metadata?.releaseYear || game.releaseDate 
-                            ? (game.metadata?.releaseYear || new Date(game.releaseDate).getFullYear())
+                        {game.metadata?.releaseYear || game.release_date 
+                            ? (game.metadata?.releaseYear || new Date(game.release_date).getFullYear())
                             : 'Unknown'}
                     </span>
                     {game.status && (

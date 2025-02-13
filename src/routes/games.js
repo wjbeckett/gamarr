@@ -4,7 +4,6 @@ const db = require('../db');
 const logger = require('../config/logger');
 const fs = require('fs-extra');
 const path = require('path');
-const { validateGameJson } = require('../utils/validateJSON');
 
 // Add this ABOVE the existing GET route
 router.post('/', async (req, res) => {

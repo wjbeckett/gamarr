@@ -12,7 +12,7 @@ export default function SearchResultModal({ game, isOpen, onClose, onAddGame }) 
                 const data = await response.json();
                 setRootFolders(data);
                 if (data.length > 0) {
-                    setSelectedRootFolder(data[0].id); // Default to the first root folder
+                    setSelectedRootFolder(data[0].id);
                 }
             } catch (error) {
                 console.error('Failed to fetch root folders:', error);
@@ -69,6 +69,35 @@ export default function SearchResultModal({ game, isOpen, onClose, onAddGame }) 
                                 <span className="text-gray-400">No Image</span>
                             </div>
                         )}
+                        
+                        {/* Metadata under the image */}
+                        <div className="mt-4 space-y-2">
+                            <div className="text-sm text-text-secondary">
+                                <i className="fas fa-calendar-alt mr-2" />
+                                {game.releaseDate ? new Date(game.releaseDate).getFullYear() : 'Unknown Year'}
+                            </div>
+                            
+                            {game.platforms && game.platforms.length > 0 && (
+                                <div className="text-sm text-text-secondary">
+                                    <i className="fas fa-gamepad mr-2" />
+                                    {game.platforms.join(', ')}
+                                </div>
+                            )}
+                            
+                            {game.genres && game.genres.length > 0 && (
+                                <div className="text-sm text-text-secondary">
+                                    <i className="fas fa-tags mr-2" />
+                                    {game.genres.join(', ')}
+                                </div>
+                            )}
+                            
+                            {game.developers && game.developers.length > 0 && (
+                                <div className="text-sm text-text-secondary">
+                                    <i className="fas fa-code mr-2" />
+                                    {game.developers.join(', ')}
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Right Column: Game Details and Form */}

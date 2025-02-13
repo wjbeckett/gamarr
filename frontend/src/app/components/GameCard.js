@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 
 export default function GameCard({ game, onClick, showVersion = true }) {
-  // Improved release date handling
   const getReleaseYear = () => {
     const dateSource = game.releaseDate || game.release_date;
     if (!dateSource) return 'Unknown release';
@@ -15,7 +14,17 @@ export default function GameCard({ game, onClick, showVersion = true }) {
     }
   };
 
-  // Card content component (preserves your animations)
+  // Get the first platform and genre count
+  const getPlatformInfo = () => {
+    if (!game.platforms || game.platforms.length === 0) return 'Unknown platform';
+    return `${game.platforms[0]}${game.platforms.length > 1 ? ` +${game.platforms.length - 1}` : ''}`;
+  };
+
+  const getGenreInfo = () => {
+    if (!game.genres || game.genres.length === 0) return 'Unknown genre';
+    return `${game.genres[0]}${game.genres.length > 1 ? ` +${game.genres.length - 1}` : ''}`;
+  };
+
   const CardContent = () => (
     <motion.div
       className="bg-card border border-border-dark rounded-lg shadow-lg shadow-black/10 w-full cursor-pointer h-full"
@@ -51,22 +60,30 @@ export default function GameCard({ game, onClick, showVersion = true }) {
           </div>
         )}
 
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col gap-1 mb-2">
           <span className="text-xs text-text-secondary">
             <i className="fas fa-calendar-alt mr-2" />
             {getReleaseYear()}
           </span>
-          
-          {game.status && (
-            <span className={`px-2 py-0.5 rounded text-xs ${
-              game.status === 'completed' ? 'bg-green-500/20 text-green-300' :
-              game.status === 'downloading' ? 'bg-blue-500/20 text-blue-300' :
-              'bg-gray-500/20 text-gray-300'
-            }`}>
-              {game.status}
-            </span>
-          )}
+          <span className="text-xs text-text-secondary">
+            <i className="fas fa-gamepad mr-2" />
+            {getPlatformInfo()}
+          </span>
+          <span className="text-xs text-text-secondary">
+            <i className="fas fa-tags mr-2" />
+            {getGenreInfo()}
+          </span>
         </div>
+
+        {game.status && (
+          <span className={`px-2 py-0.5 rounded text-xs ${
+            game.status === 'completed' ? 'bg-green-500/20 text-green-300' :
+            game.status === 'downloading' ? 'bg-blue-500/20 text-blue-300' :
+            'bg-gray-500/20 text-gray-300'
+          }`}>
+            {game.status}
+          </span>
+        )}
       </div>
     </motion.div>
   );

@@ -157,24 +157,25 @@ export default function Search() {
             </div>
 
             {/* Modal */}
-            <SearchResultModal
-                game={{
-                    ...result,
-                    // Spread all metadata properties
-                    genres: result.genres,
-                    platforms: result.platforms,
-                    developers: result.developers,
-                    publishers: result.publishers,
-                    rating: result.rating,
-                    gameModes: result.gameModes,
-                    screenshots: result.screenshots,
-                    description: result.description,
-                    releaseDate: result.releaseDate
-                }}
-                isOpen={selectedGame !== null}
-                onClose={() => setSelectedGame(null)}
-                onAddGame={handleAddGame}
-            />
+            {selectedGame && (
+                <SearchResultModal
+                    game={{
+                        ...selectedGame,
+                        genres: selectedGame.genres,
+                        platforms: selectedGame.platforms,
+                        developers: selectedGame.developers,
+                        publishers: selectedGame.publishers,
+                        rating: selectedGame.rating,
+                        gameModes: selectedGame.gameModes,
+                        screenshots: selectedGame.screenshots,
+                        description: selectedGame.description,
+                        releaseDate: selectedGame.releaseDate
+                    }}
+                    isOpen={isModalOpen}
+                    onClose={handleCloseModal}
+                    onAddGame={handleAddGame}
+                />
+            )}
         </div>
     );
 }

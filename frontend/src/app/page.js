@@ -58,10 +58,15 @@ function FilteredContent({ games, searchTerm, filterStatus, sortBy }) {
             ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                     {filteredAndSortedGames.map((game) => (
-                        <GameCard
-                            key={game.id}
-                            game={game}
-                        />
+                        <Link 
+                            key={game.id} 
+                            href={`/library/${game.id}`}
+                            passHref
+                        >
+                            <a className="block h-full">
+                                <GameCard game={game} />
+                            </a>
+                        </Link>
                     ))}
                 </div>
             )}

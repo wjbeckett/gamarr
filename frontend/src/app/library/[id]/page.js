@@ -108,7 +108,8 @@ export default function GameDetails() {
                 
                 setGame({
                     ...data,
-                    metadata: data.metadata ? JSON.parse(data.metadata) : null
+                    // FIX: Remove JSON.parse since backend should send parsed data
+                    metadata: data.metadata || null
                 });
             } catch (err) {
                 setError(err.message);

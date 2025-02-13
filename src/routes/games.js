@@ -4,6 +4,7 @@ const db = require('../db');
 const logger = require('../config/logger');
 const fs = require('fs-extra');
 const path = require('path');
+const { validateGameJson } = require('../utils/validateJson');
 
 // Add this ABOVE the existing GET route
 router.post('/', async (req, res) => {
@@ -145,7 +146,7 @@ router.get('/', (req, res) => {
 });
 
 // Get game details
-router.get('/:id', async (req, res) => {
+router.get('/:id', validateGameJson, (req, res) => {
     const { id } = req.params;
     
     db.get(`
@@ -165,23 +166,20 @@ router.get('/:id', async (req, res) => {
         }
 
         try {
-            // Parse stored metadata instead of re-fetching
-            const metadata = game.metadata ? JSON.parse(game.metadata) : null;
-            
+            // Ensure metadata is always valid JSON
+            const metadata = game.metadata ? 
+              JSON.parse(game.metadata) : 
+              null;
+        
             const enrichedGame = {
               ...game,
-              latestVersion: game.latestVersion || 'Unknown',
-              metadata: metadata ? {
-                ...metadata,
-                releaseYear: metadata.releaseYear || 
-                  (game.release_date ? new Date(game.release_date).getFullYear() : null)
-              } : null
+              metadata  // Send already parsed metadata
             };
         
             res.json(enrichedGame);
           } catch (error) {
             logger.error('Error parsing metadata:', error);
-            res.json(game);
+            res.status(500).json({ error: 'Invalid game data format' });
           }
     });
 });

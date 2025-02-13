@@ -5,6 +5,62 @@ const logger = require('../config/logger');
 const fs = require('fs-extra');
 const path = require('path');
 
+// Add this ABOVE the existing GET route
+router.post('/', async (req, res) => {
+    const { 
+      name,
+      release_date,
+      description,
+      destination_path,
+      root_folder_id,
+      cover_url,
+      metadata
+    } = req.body;
+  
+    if (!name || !root_folder_id) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+  
+    db.run(
+      `INSERT INTO games (
+        name,
+        release_date,
+        description,
+        destination_path,
+        root_folder_id,
+        cover_url,
+        metadata
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        name,
+        release_date,
+        description,
+        destination_path,
+        root_folder_id,
+        cover_url,
+        JSON.stringify(metadata || {})
+      ],
+      function(err) {
+        if (err) {
+          logger.error('Error creating game:', err);
+          return res.status(500).json({ error: 'Failed to create game' });
+        }
+  
+        db.get(
+          `SELECT * FROM games WHERE id = ?`,
+          [this.lastID],
+          (err, newGame) => {
+            if (err) {
+              logger.error('Error fetching new game:', err);
+              return res.status(500).json({ error: 'Game created but failed to fetch details' });
+            }
+            res.status(201).json(newGame);
+          }
+        );
+      }
+    );
+  });
+
 // Get all games (with versions)
 router.get('/', (req, res) => {
     db.all(`
@@ -94,8 +150,8 @@ router.get('/:id', async (req, res) => {
     
     db.get(`
         SELECT 
-            g.*,
-            r.path as root_folder_name
+          g.*,
+          r.path as root_folder_name
         FROM games g
         LEFT JOIN root_folders r ON g.root_folder_id = r.id
         WHERE g.id = ?
@@ -109,31 +165,24 @@ router.get('/:id', async (req, res) => {
         }
 
         try {
-            const metadataService = require('../services/metadata');
-            const searchResults = await metadataService.searchGameName(game.name);
-            const metadata = searchResults[0] || null;
-
+            // Parse stored metadata instead of re-fetching
+            const metadata = game.metadata ? JSON.parse(game.metadata) : null;
+            
             const enrichedGame = {
-                ...game,
-                latestVersion: game.latestVersion || 'Unknown',
-                metadata: metadata ? {
-                    genres: metadata.genres || [],
-                    platforms: metadata.platforms || [],
-                    developers: metadata.developers || [],
-                    publishers: metadata.publishers || [],
-                    rating: metadata.rating,
-                    gameModes: metadata.gameModes || [],
-                    screenshots: metadata.screenshots || [],
-                    description: metadata.description || game.description,
-                    releaseYear: metadata.releaseYear || 'Unknown'
-                } : null
+              ...game,
+              latestVersion: game.latestVersion || 'Unknown',
+              metadata: metadata ? {
+                ...metadata,
+                releaseYear: metadata.releaseYear || 
+                  (game.release_date ? new Date(game.release_date).getFullYear() : null)
+              } : null
             };
-
+        
             res.json(enrichedGame);
-        } catch (error) {
-            logger.error('Error fetching additional metadata:', error);
-            res.json(game); // Return basic game info if metadata fetch fails
-        }
+          } catch (error) {
+            logger.error('Error parsing metadata:', error);
+            res.json(game);
+          }
     });
 });
 

@@ -31,10 +31,21 @@ export default function SearchResultModal({ game, isOpen, onClose, onAddGame }) 
         const formData = new FormData(e.target);
         const data = {
             name: game.name,
-            release_date: game.release_date,
+            release_date: game.releaseDate,
             description: game.description,
+            metadata: {
+                genres: game.genres,
+                platforms: game.platforms,
+                developers: game.developers,
+                publishers: game.publishers,
+                rating: game.rating,
+                gameModes: game.gameModes,
+                screenshots: game.screenshots,
+                description: game.description,
+                releaseYear: game.releaseDate ? new Date(game.releaseDate).getFullYear() : null
+            },
             destination_path: `${rootFolders.find(folder => folder.id === selectedRootFolder).path}/${game.name}`,
-            root_folder_id: selectedRootFolder, // Correct field name
+            root_folder_id: selectedRootFolder,
             cover_url: game.cover_url,
             should_search: formData.get('should_search') === 'on'
         };

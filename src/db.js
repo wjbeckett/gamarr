@@ -55,17 +55,16 @@ function initializeDatabase() {
         // Create games table with root_folder_id included
         db.run(`
             CREATE TABLE IF NOT EXISTS games (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                release_date TEXT,
-                description TEXT,
-                destination_path TEXT,
-                status TEXT DEFAULT 'new',
-                root_folder_id INTEGER REFERENCES root_folders(id),
-                cover_url TEXT,
-                igdb_id INTEGER,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              name TEXT NOT NULL,
+              release_date TEXT,
+              description TEXT,
+              destination_path TEXT,
+              root_folder_id INTEGER,
+              cover_url TEXT,
+              metadata TEXT,
+              created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+              FOREIGN KEY(root_folder_id) REFERENCES root_folders(id)
             )
         `, (err) => {
             if (err) {

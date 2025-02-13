@@ -158,9 +158,21 @@ export default function Search() {
 
             {/* Modal */}
             <SearchResultModal
-                game={selectedGame}
-                isOpen={isModalOpen}
-                onClose={handleCloseModal}
+                game={{
+                    ...result,
+                    // Spread all metadata properties
+                    genres: result.genres,
+                    platforms: result.platforms,
+                    developers: result.developers,
+                    publishers: result.publishers,
+                    rating: result.rating,
+                    gameModes: result.gameModes,
+                    screenshots: result.screenshots,
+                    description: result.description,
+                    releaseDate: result.releaseDate
+                }}
+                isOpen={selectedGame !== null}
+                onClose={() => setSelectedGame(null)}
                 onAddGame={handleAddGame}
             />
         </div>

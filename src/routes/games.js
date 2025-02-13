@@ -66,8 +66,8 @@ router.post('/', async (req, res) => {
 router.get('/', (req, res) => {
     db.all(`
     SELECT 
-    g.*,
-    r.path as root_folder_name
+        g.*,
+        r.path as root_folder_name
     FROM games g
     LEFT JOIN root_folders r ON g.root_folder_id = r.id
     `, async (err, rows) => {
@@ -81,7 +81,15 @@ router.get('/', (req, res) => {
                 rows.map(async (game) => {
                     let latestVersion = null;
                     let allVersions = [];
-                    let status = 'new'; // Default status
+                    let status = 'new';
+
+                    let metadata = {};
+                    try {
+                        metadata = game.metadata ? JSON.parse(game.metadata) : {};
+                    } catch (error) {
+                        logger.error(`Error parsing metadata for game ${game.name}:`, error);
+                        metadata = {};
+                    }
             
                     if (game.destination_path && fs.existsSync(game.destination_path)) {
                         try {
@@ -130,9 +138,12 @@ router.get('/', (req, res) => {
             
                     return {
                         ...game,
+                        platforms: metadata.platforms || [],
+                        genres: metadata.genres || [],
+                        gameModes: metadata.gameModes || [],
                         latestVersion,
                         allVersions,
-                        status // Include the calculated status
+                        status
                     };
                 })
             );

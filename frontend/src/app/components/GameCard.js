@@ -16,13 +16,41 @@ export default function GameCard({ game, onClick, showVersion = true }) {
 
   // Get the first platform and genre count
   const getPlatformInfo = () => {
-    if (!game.platforms || game.platforms.length === 0) return 'Unknown platform';
-    return `${game.platforms[0]}${game.platforms.length > 1 ? ` +${game.platforms.length - 1}` : ''}`;
+    // Check both direct properties and metadata
+    const platforms = game.platforms || 
+                     (game.metadata && game.metadata.platforms) || [];
+    
+    if (platforms.length === 0) return 'Unknown platform';
+    
+    return (
+        <>
+            {/* Show all platforms on desktop */}
+            <span className="hidden sm:inline">{platforms.join(', ')}</span>
+            {/* Show "+X" on mobile */}
+            <span className="sm:hidden">
+                {`${platforms[0]}${platforms.length > 1 ? ` +${platforms.length - 1}` : ''}`}
+            </span>
+        </>
+    );
   };
 
   const getGenreInfo = () => {
-    if (!game.genres || game.genres.length === 0) return 'Unknown genre';
-    return `${game.genres[0]}${game.genres.length > 1 ? ` +${game.genres.length - 1}` : ''}`;
+    // Check both direct properties and metadata
+    const genres = game.genres || 
+                  (game.metadata && game.metadata.genres) || [];
+    
+    if (genres.length === 0) return 'Unknown genre';
+    
+    return (
+        <>
+            {/* Show all genres on desktop */}
+            <span className="hidden sm:inline">{genres.join(', ')}</span>
+            {/* Show "+X" on mobile */}
+            <span className="sm:hidden">
+                {`${genres[0]}${genres.length > 1 ? ` +${genres.length - 1}` : ''}`}
+            </span>
+        </>
+    );
   };
 
   const CardContent = () => (

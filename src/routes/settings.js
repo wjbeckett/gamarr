@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const logger = require('../config/logger');
+const fs = require('fs-extra');
+const diskusage = require('diskusage');
 
 // Get all general settings
 router.get('/general', (req, res) => {
@@ -242,14 +244,39 @@ router.delete('/library-locations/:id', (req, res) => {
 });
 
 // Get all root folders
-router.get('/root-folders', (req, res) => {
-    db.all('SELECT * FROM root_folders ORDER BY path', [], (err, rows) => {
-        if (err) {
-            logger.error('Failed to fetch root folders:', err);
-            return res.status(500).json({ error: 'Failed to fetch root folders' });
-        }
-        res.json(rows);
-    });
+router.get('/root-folders', async (req, res) => {
+    try {
+        const rows = await new Promise((resolve, reject) => {
+            db.all('SELECT * FROM root_folders ORDER BY path', [], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+
+        // Add free space information to each folder
+        const foldersWithSpace = await Promise.all(rows.map(async (folder) => {
+            try {
+                const usage = await diskusage.check(folder.path);
+                // Convert bytes to GB
+                const freeSpace = Math.floor(usage.free / (1024 * 1024 * 1024));
+                return {
+                    ...folder,
+                    free_space: freeSpace
+                };
+            } catch (error) {
+                logger.error(`Error getting disk space for ${folder.path}:`, error);
+                return {
+                    ...folder,
+                    free_space: null
+                };
+            }
+        }));
+
+        res.json(foldersWithSpace);
+    } catch (error) {
+        logger.error('Failed to fetch root folders:', error);
+        res.status(500).json({ error: 'Failed to fetch root folders' });
+    }
 });
 
 // Add a new root folder

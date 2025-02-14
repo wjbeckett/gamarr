@@ -4,18 +4,26 @@ import { useState, useEffect } from 'react';
 export default function SearchResultModal({ game, isOpen, onClose, onAddGame }) {
     const [rootFolders, setRootFolders] = useState([]);
     const [selectedRootFolder, setSelectedRootFolder] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         async function fetchRootFolders() {
             try {
+                setLoading(true);
                 const response = await fetch('/api/settings/root-folders');
+                if (!response.ok) throw new Error('Failed to fetch root folders');
                 const data = await response.json();
+                
                 setRootFolders(data);
                 if (data.length > 0) {
                     setSelectedRootFolder(data[0].id);
                 }
             } catch (error) {
                 console.error('Failed to fetch root folders:', error);
+                setError(error.message);
+            } finally {
+                setLoading(false);
             }
         }
 
@@ -23,6 +31,15 @@ export default function SearchResultModal({ game, isOpen, onClose, onAddGame }) 
             fetchRootFolders();
         }
     }, [isOpen]);
+
+    // Format the free space display
+    const formatFreeSpace = (gb) => {
+        if (gb === null || gb === undefined) return 'Unknown space';
+        if (gb >= 1024) {
+            return `${(gb / 1024).toFixed(1)} TB free`;
+        }
+        return `${Math.floor(gb)} GB free`;
+    };
 
     if (!isOpen) return null;
 
@@ -112,17 +129,23 @@ export default function SearchResultModal({ game, isOpen, onClose, onAddGame }) 
                             <label className="block text-sm text-text-secondary mb-2">
                                 Destination Root Folder
                             </label>
-                            <select
-                                value={selectedRootFolder}
-                                onChange={(e) => setSelectedRootFolder(e.target.value)}
-                                className="w-full bg-gray-800 text-white p-2 rounded"
-                            >
-                                {rootFolders.map((folder) => (
-                                    <option key={folder.id} value={folder.id}>
-                                        {folder.path} ({folder.free_space ? `${folder.free_space} GB free` : 'Unknown space'})
-                                    </option>
-                                ))}
-                            </select>
+                            {loading ? (
+                                <div className="text-sm text-text-secondary">Loading folders...</div>
+                            ) : error ? (
+                                <div className="text-sm text-red-500">{error}</div>
+                            ) : (
+                                <select
+                                    value={selectedRootFolder || ''}
+                                    onChange={(e) => setSelectedRootFolder(Number(e.target.value))}
+                                    className="w-full bg-gray-800 text-white p-2 rounded"
+                                >
+                                    {rootFolders.map((folder) => (
+                                        <option key={folder.id} value={folder.id}>
+                                            {folder.path} ({formatFreeSpace(folder.free_space)})
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
                         </div>
 
                         {/* Search Checkbox */}

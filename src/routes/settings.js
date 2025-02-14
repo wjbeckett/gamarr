@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require('../db');
 const logger = require('../config/logger');
 const fs = require('fs-extra');
-const diskusage = require('diskusage');
+const { execSync } = require('child_process');
 
 // Get all general settings
 router.get('/general', (req, res) => {
@@ -243,7 +243,7 @@ router.delete('/library-locations/:id', (req, res) => {
     });
 });
 
-// Get all root folders
+// Get all root folders with free space
 router.get('/root-folders', async (req, res) => {
     try {
         const rows = await new Promise((resolve, reject) => {
@@ -256,12 +256,23 @@ router.get('/root-folders', async (req, res) => {
         // Add free space information to each folder
         const foldersWithSpace = await Promise.all(rows.map(async (folder) => {
             try {
-                const usage = await diskusage.check(folder.path);
-                // Convert bytes to GB
-                const freeSpace = Math.floor(usage.free / (1024 * 1024 * 1024));
+                // Use df command to get disk space information
+                const dfOutput = execSync(`df -B1 "${folder.path}"`, { encoding: 'utf8' });
+                const lines = dfOutput.trim().split('\n');
+                if (lines.length >= 2) {
+                    const [, available] = lines[1].match(/\S+\s+\S+\s+(\S+)/) || [];
+                    if (available) {
+                        // Convert bytes to GB
+                        const freeSpace = Math.floor(parseInt(available) / (1024 * 1024 * 1024));
+                        return {
+                            ...folder,
+                            free_space: freeSpace
+                        };
+                    }
+                }
                 return {
                     ...folder,
-                    free_space: freeSpace
+                    free_space: null
                 };
             } catch (error) {
                 logger.error(`Error getting disk space for ${folder.path}:`, error);

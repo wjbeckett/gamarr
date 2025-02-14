@@ -26,7 +26,7 @@ export default function RootFoldersPage() {
     });
     if (response.ok) {
       const addedFolder = await response.json();
-      setFolders([...folders, { id: addedFolder.id, path: newFolder }]);
+      setFolders([...folders, { id: addedFolder.id, path: newFolder, free_space: null }]);
       setNewFolder('');
     }
   };
@@ -39,6 +39,15 @@ export default function RootFoldersPage() {
     if (response.ok) {
       setFolders(folders.filter((folder) => folder.id !== id));
     }
+  };
+
+  // Format the free space display
+  const formatFreeSpace = (gb) => {
+    if (gb === null || gb === undefined) return 'Unknown space';
+    if (gb >= 1024) {
+      return `${(gb / 1024).toFixed(1)} TB free`;
+    }
+    return `${Math.floor(gb)} GB free`;
   };
 
   return (
@@ -56,6 +65,9 @@ export default function RootFoldersPage() {
               <th className="px-6 py-3 text-left text-sm font-semibold text-text-secondary">
                 Path
               </th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-text-secondary">
+                Free Space
+              </th>
               <th className="px-6 py-3 w-10"></th>
             </tr>
           </thead>
@@ -63,6 +75,7 @@ export default function RootFoldersPage() {
             {folders.map((folder) => (
               <tr key={folder.id} className="hover:bg-card-hover">
                 <td className="px-6 py-4 text-sm">{folder.path}</td>
+                <td className="px-6 py-4 text-sm">{formatFreeSpace(folder.free_space)}</td>
                 <td className="px-6 py-4 text-right">
                   <button
                     className="text-text-secondary hover:text-error"

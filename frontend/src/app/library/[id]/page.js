@@ -106,10 +106,13 @@ export default function GameDetails() {
                 
                 if (!data) throw new Error('Game not found');
                 
+                // Ensure we're using the same version and status from the database
                 setGame({
                     ...data,
-                    // FIX: Remove JSON.parse since backend should send parsed data
-                    metadata: data.metadata || null
+                    metadata: data.metadata || {},
+                    latestVersion: data.latestVersion || null,
+                    status: data.status || 'Not downloaded',
+                    allVersions: data.allVersions || []
                 });
             } catch (err) {
                 setError(err.message);
@@ -118,7 +121,7 @@ export default function GameDetails() {
                 setLoading(false);
             }
         };
-
+    
         fetchGame();
     }, [params.id]);
 
@@ -218,14 +221,30 @@ export default function GameDetails() {
                                             <i className="fas fa-code-branch text-primary mt-1 mr-3 w-5" />
                                             <div>
                                                 <span className="text-text-secondary text-sm">Version</span>
-                                                <p className="text-text-primary">{game.latestVersion ? `v${game.latestVersion}` : 'Unknown'}</p>
+                                                <p className="text-text-primary">
+                                                    {game.latestVersion ? `v${game.latestVersion}` : 'Unknown'}
+                                                    {game.allVersions && game.allVersions.length > 1 && (
+                                                        <span className="text-text-secondary text-sm ml-2">
+                                                            (+{game.allVersions.length - 1} other versions)
+                                                        </span>
+                                                    )}
+                                                </p>
                                             </div>
                                         </div>
                                         <div className="flex items-start">
                                             <i className="fas fa-info-circle text-primary mt-1 mr-3 w-5" />
                                             <div>
                                                 <span className="text-text-secondary text-sm">Status</span>
-                                                <p className="text-text-primary">{game.status || 'Not downloaded'}</p>
+                                                <p className={`text-text-primary ${
+                                                    game.status === 'completed' ? 'text-green-400' :
+                                                    game.status === 'downloading' ? 'text-blue-400' :
+                                                    'text-text-primary'
+                                                }`}>
+                                                    {game.status === 'completed' ? 'Downloaded' :
+                                                    game.status === 'downloading' ? 'Downloading' :
+                                                    game.status === 'pending' ? 'Pending' :
+                                                    'Not downloaded'}
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
@@ -239,7 +258,7 @@ export default function GameDetails() {
                                     >
                                         <i className="fas fa-sync-alt mr-2" /> Force Search
                                     </button>
-                                    {game.status !== 'downloading' && (
+                                    {game.status !== 'completed' && game.status !== 'downloading' && (
                                         <button
                                             className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center justify-center"
                                             onClick={() => {/* TODO: Implement download */}}

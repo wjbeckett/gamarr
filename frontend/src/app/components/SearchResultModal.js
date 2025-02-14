@@ -90,15 +90,19 @@ export default function SearchResultModal({ game, isOpen, onClose, onAddGame }) 
                         {/* Metadata under the image */}
                         <div className="mt-4 space-y-2">
                             {/* Release Year */}
-                            <div className="text-sm text-text-secondary font-semibold">
-                                <i className="fas fa-calendar-alt mr-2" />
-                                {game.releaseDate ? new Date(game.releaseDate).getFullYear() : 'Unknown Year'}
-                            </div>
+                            {game.releaseDate && (
+                                <div className="text-sm text-text-secondary flex flex-wrap gap-2 items-center">
+                                <i className="fas fa-calendar-alt shrink-0" />
+                                <span className="bg-gray-700 text-white px-2 py-1 rounded-md text-xs">
+                                    {new Date(game.releaseDate).getFullYear()}
+                                </span>
+                                </div>
+                            )}
 
                             {/* Platforms */}
                             {game.platforms && game.platforms.length > 0 && (
-                                <div className="text-sm text-text-secondary flex flex-wrap gap-2">
-                                <i className="fas fa-gamepad mr-2 shrink-0" />
+                                <div className="text-sm text-text-secondary flex flex-wrap gap-2 items-center">
+                                <i className="fas fa-gamepad shrink-0" />
                                 <div className="flex flex-wrap gap-2">
                                     {game.platforms.map((platform, index) => (
                                     <span
@@ -114,8 +118,8 @@ export default function SearchResultModal({ game, isOpen, onClose, onAddGame }) 
 
                             {/* Genres */}
                             {game.genres && game.genres.length > 0 && (
-                                <div className="text-sm text-text-secondary flex flex-wrap gap-2">
-                                <i className="fas fa-tags mr-2 shrink-0" />
+                                <div className="text-sm text-text-secondary flex flex-wrap gap-2 items-center">
+                                <i className="fas fa-tags shrink-0" />
                                 <div className="flex flex-wrap gap-2">
                                     {game.genres.map((genre, index) => (
                                     <span
@@ -131,8 +135,8 @@ export default function SearchResultModal({ game, isOpen, onClose, onAddGame }) 
 
                             {/* Developers */}
                             {game.developers && game.developers.length > 0 && (
-                                <div className="text-sm text-text-secondary flex flex-wrap gap-2">
-                                <i className="fas fa-code mr-2 shrink-0" />
+                                <div className="text-sm text-text-secondary flex flex-wrap gap-2 items-center">
+                                <i className="fas fa-code shrink-0" />
                                 <div className="flex flex-wrap gap-2">
                                     {game.developers.map((developer, index) => (
                                     <span

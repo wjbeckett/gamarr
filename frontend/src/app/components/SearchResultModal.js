@@ -87,12 +87,12 @@ export default function SearchResultModal({ game, isOpen, onClose, onAddGame }) 
                             </div>
                         )}
                         
-                        {/* Metadata under the image */}
-                        <div className="mt-4 grid grid-cols-1 gap-2">
+                        {/* Metadata Section */}
+                        <div className="mt-4 space-y-4">
                             {/* Release Year */}
                             {game.releaseDate && (
-                                <div className="text-sm text-text-secondary flex items-center gap-2">
-                                <i className="fas fa-calendar-alt shrink-0" />
+                                <div className="flex items-center gap-2">
+                                <i className="fas fa-calendar-alt text-text-secondary" />
                                 <span className="bg-gray-700 text-white px-2 py-1 rounded-md text-xs">
                                     {new Date(game.releaseDate).getFullYear()}
                                 </span>
@@ -101,43 +101,61 @@ export default function SearchResultModal({ game, isOpen, onClose, onAddGame }) 
 
                             {/* Platforms */}
                             {game.platforms && game.platforms.length > 0 && (
-                                <div className="text-sm text-text-secondary grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                {game.platforms.map((platform, index) => (
+                                <div>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <i className="fas fa-gamepad text-text-secondary" />
+                                    <span className="text-sm font-semibold text-text-secondary">Platforms</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {game.platforms.map((platform, index) => (
                                     <span
-                                    key={index}
-                                    className="bg-gray-700 text-white px-2 py-1 rounded-md text-xs"
+                                        key={index}
+                                        className="bg-gray-700 text-white px-2 py-1 rounded-md text-xs"
                                     >
-                                    {platform}
+                                        {platform}
                                     </span>
-                                ))}
+                                    ))}
+                                </div>
                                 </div>
                             )}
 
                             {/* Genres */}
                             {game.genres && game.genres.length > 0 && (
-                                <div className="text-sm text-text-secondary grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                {game.genres.map((genre, index) => (
+                                <div>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <i className="fas fa-tags text-text-secondary" />
+                                    <span className="text-sm font-semibold text-text-secondary">Genres</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {game.genres.map((genre, index) => (
                                     <span
-                                    key={index}
-                                    className="bg-gray-700 text-white px-2 py-1 rounded-md text-xs"
+                                        key={index}
+                                        className="bg-gray-700 text-white px-2 py-1 rounded-md text-xs"
                                     >
-                                    {genre}
+                                        {genre}
                                     </span>
-                                ))}
+                                    ))}
+                                </div>
                                 </div>
                             )}
 
                             {/* Developers */}
                             {game.developers && game.developers.length > 0 && (
-                                <div className="text-sm text-text-secondary grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                {game.developers.map((developer, index) => (
+                                <div>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <i className="fas fa-code text-text-secondary" />
+                                    <span className="text-sm font-semibold text-text-secondary">Developers</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {game.developers.map((developer, index) => (
                                     <span
-                                    key={index}
-                                    className="bg-gray-700 text-white px-2 py-1 rounded-md text-xs"
+                                        key={index}
+                                        className="bg-gray-700 text-white px-2 py-1 rounded-md text-xs"
                                     >
-                                    {developer}
+                                        {developer}
                                     </span>
-                                ))}
+                                    ))}
+                                </div>
                                 </div>
                             )}
                         </div>

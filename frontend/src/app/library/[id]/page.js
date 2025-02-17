@@ -3,6 +3,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import DeleteGameModal from '../../components/DeleteGameModal';
 import ErrorBoundary from '../../components/ErrorBoundary';
+import FileManagement from '../../../components/FileManagement';
 
 export const dynamic = 'force-dynamic';
 
@@ -346,6 +347,12 @@ export default function GameDetails() {
                                         </div>
                                     </div>
                                 )}
+
+                                {/* File Management Info */}
+                                <FileManagement 
+                                    versions={game.allVersions || []} 
+                                    nfoPath={game.nfoPath} 
+                                />
 
                                 {/* Screenshots */}
                                 {game.metadata?.screenshots?.length > 0 && (

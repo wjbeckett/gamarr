@@ -4,9 +4,26 @@ const db = require('../db');
 const logger = require('../config/logger');
 const fs = require('fs-extra');
 const path = require('path');
-const { validateGameJson } = require('../utils/validateJson')
+const { validateGameJson } = require('../utils/validateJson');
+const uiFileManager = require('../services/uiFileManager');
 
-// Add this ABOVE the existing GET route
+
+router.get('/nfo', async (req, res) => {
+    const { path: nfoPath } = req.query;
+    
+    try {
+        const nfoContent = await uiFileManager.fetchNfoContent(nfoPath);
+        const parsedContent = uiFileManager.parseNfoContent(nfoContent);
+        res.json({
+            raw: nfoContent,
+            parsed: parsedContent
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
 router.post('/', async (req, res) => {
     const { 
       name,

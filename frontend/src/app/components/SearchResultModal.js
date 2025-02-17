@@ -110,7 +110,7 @@ export default function SearchResultModal({ game, isOpen, onClose, onAddGame }) 
                                     {game.platforms.map((platform, index) => (
                                     <span
                                         key={index}
-                                        className="bg-gray-700 text-white px-2 py-1 rounded-md text-xs"
+                                        className="bg-gray-700 text-white px-2 py-1 rounded-md text-xs break-words"
                                     >
                                         {platform}
                                     </span>
@@ -130,7 +130,7 @@ export default function SearchResultModal({ game, isOpen, onClose, onAddGame }) 
                                     {game.genres.map((genre, index) => (
                                     <span
                                         key={index}
-                                        className="bg-gray-700 text-white px-2 py-1 rounded-md text-xs"
+                                        className="bg-gray-700 text-white px-2 py-1 rounded-md text-xs break-words"
                                     >
                                         {genre}
                                     </span>
@@ -150,7 +150,7 @@ export default function SearchResultModal({ game, isOpen, onClose, onAddGame }) 
                                     {game.developers.map((developer, index) => (
                                     <span
                                         key={index}
-                                        className="bg-gray-700 text-white px-2 py-1 rounded-md text-xs"
+                                        className="bg-gray-700 text-white px-2 py-1 rounded-md text-xs break-words"
                                     >
                                         {developer}
                                     </span>

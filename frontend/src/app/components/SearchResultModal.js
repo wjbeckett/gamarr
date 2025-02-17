@@ -72,153 +72,158 @@ export default function SearchResultModal({ game, isOpen, onClose, onAddGame }) 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-card rounded-lg p-6 max-w-3xl w-full m-4">
-                <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-6">
-                    {/* Left Column: Game Cover */}
-                    <div className="flex-shrink-0">
-                        {game.cover_url ? (
-                            <img
-                                src={game.cover_url}
-                                alt={game.name}
-                                className="w-48 h-auto rounded shadow-md"
-                            />
-                        ) : (
-                            <div className="w-48 h-64 bg-gray-700 flex items-center justify-center rounded shadow-md">
-                                <span className="text-gray-400">No Image</span>
+                <form onSubmit={handleSubmit}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Left Column: Game Cover and Metadata */}
+                        <div className="space-y-4">
+                            {/* Game Cover */}
+                            <div className="flex justify-center">
+                                {game.cover_url ? (
+                                    <img
+                                        src={game.cover_url}
+                                        alt={game.name}
+                                        className="w-48 h-auto rounded shadow-md"
+                                    />
+                                ) : (
+                                    <div className="w-48 h-64 bg-gray-700 flex items-center justify-center rounded shadow-md">
+                                        <span className="text-gray-400">No Image</span>
+                                    </div>
+                                )}
                             </div>
-                        )}
-                        
-                        {/* Metadata Section */}
-                        <div className="mt-4 space-y-4 max-w-full">
-                            {/* Release Year */}
-                            {game.releaseDate && (
-                                <div className="flex items-center gap-2">
-                                <i className="fas fa-calendar-alt text-text-secondary shrink-0" />
-                                <span className="bg-gray-700 text-white px-2 py-1 rounded-md text-xs">
-                                    {new Date(game.releaseDate).getFullYear()}
-                                </span>
-                                </div>
-                            )}
 
-                            {/* Platforms */}
-                            {game.platforms && game.platforms.length > 0 && (
-                                <div className="w-full">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <i className="fas fa-gamepad text-text-secondary shrink-0" />
-                                    <span className="text-sm font-semibold text-text-secondary">Platforms</span>
-                                </div>
-                                <div className="w-full flex flex-wrap gap-2 overflow-hidden">
-                                    {game.platforms.map((platform, index) => (
-                                    <span
-                                        key={index}
-                                        className="inline-flex bg-gray-700 text-white px-2 py-1 rounded-md text-xs whitespace-normal"
-                                    >
-                                        {platform}
-                                    </span>
-                                    ))}
-                                </div>
-                                </div>
-                            )}
+                            {/* Metadata Section */}
+                            <div className="space-y-4">
+                                {/* Release Year */}
+                                {game.releaseDate && (
+                                    <div className="flex items-center gap-2">
+                                        <i className="fas fa-calendar-alt text-text-secondary shrink-0" />
+                                        <span className="bg-gray-700 text-white px-2 py-1 rounded-md text-xs">
+                                            {new Date(game.releaseDate).getFullYear()}
+                                        </span>
+                                    </div>
+                                )}
 
-                            {/* Genres */}
-                            {game.genres && game.genres.length > 0 && (
-                                <div className="w-full">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <i className="fas fa-tags text-text-secondary shrink-0" />
-                                    <span className="text-sm font-semibold text-text-secondary">Genres</span>
-                                </div>
-                                <div className="w-full flex flex-wrap gap-2 overflow-hidden">
-                                    {game.genres.map((genre, index) => (
-                                    <span
-                                        key={index}
-                                        className="inline-flex bg-gray-700 text-white px-2 py-1 rounded-md text-xs whitespace-normal"
-                                    >
-                                        {genre}
-                                    </span>
-                                    ))}
-                                </div>
-                                </div>
-                            )}
+                                {/* Platforms */}
+                                {game.platforms && game.platforms.length > 0 && (
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <i className="fas fa-gamepad text-text-secondary shrink-0" />
+                                            <span className="text-sm font-semibold text-text-secondary">Platforms</span>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {game.platforms.map((platform, index) => (
+                                                <span
+                                                    key={index}
+                                                    className="bg-gray-700 text-white px-2 py-1 rounded-md text-xs"
+                                                >
+                                                    {platform}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
 
-                            {/* Developers */}
-                            {game.developers && game.developers.length > 0 && (
-                                <div className="w-full">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <i className="fas fa-code text-text-secondary shrink-0" />
-                                    <span className="text-sm font-semibold text-text-secondary">Developers</span>
-                                </div>
-                                <div className="w-full flex flex-wrap gap-2 overflow-hidden">
-                                    {game.developers.map((developer, index) => (
-                                    <span
-                                        key={index}
-                                        className="inline-flex bg-gray-700 text-white px-2 py-1 rounded-md text-xs whitespace-normal"
-                                    >
-                                        {developer}
-                                    </span>
-                                    ))}
-                                </div>
-                                </div>
-                            )}
+                                {/* Genres */}
+                                {game.genres && game.genres.length > 0 && (
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <i className="fas fa-tags text-text-secondary shrink-0" />
+                                            <span className="text-sm font-semibold text-text-secondary">Genres</span>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {game.genres.map((genre, index) => (
+                                                <span
+                                                    key={index}
+                                                    className="bg-gray-700 text-white px-2 py-1 rounded-md text-xs"
+                                                >
+                                                    {genre}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Developers */}
+                                {game.developers && game.developers.length > 0 && (
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <i className="fas fa-code text-text-secondary shrink-0" />
+                                            <span className="text-sm font-semibold text-text-secondary">Developers</span>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {game.developers.map((developer, index) => (
+                                                <span
+                                                    key={index}
+                                                    className="bg-gray-700 text-white px-2 py-1 rounded-md text-xs"
+                                                >
+                                                    {developer}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
 
-                    {/* Right Column: Game Details and Form */}
-                    <div className="flex-grow">
-                        <h2 className="text-2xl font-bold text-text-primary mb-4">{game.name}</h2>
-                        <p className="text-sm text-text-secondary mb-4">
-                            {game.description || 'No description available.'}
-                        </p>
+                        {/* Right Column: Game Details and Form */}
+                        <div className="space-y-4">
+                            <h2 className="text-2xl font-bold text-text-primary">{game.name}</h2>
+                            <p className="text-sm text-text-secondary">
+                                {game.description || 'No description available.'}
+                            </p>
 
-                        {/* Root Folder Selection */}
-                        <div className="mb-4">
-                            <label className="block text-sm text-text-secondary mb-2">
-                                Destination Root Folder
-                            </label>
-                            {loading ? (
-                                <div className="text-sm text-text-secondary">Loading folders...</div>
-                            ) : error ? (
-                                <div className="text-sm text-red-500">{error}</div>
-                            ) : (
-                                <select
-                                    value={selectedRootFolder || ''}
-                                    onChange={(e) => setSelectedRootFolder(Number(e.target.value))}
-                                    className="w-full bg-gray-800 text-white p-2 rounded"
+                            {/* Root Folder Selection */}
+                            <div>
+                                <label className="block text-sm text-text-secondary mb-2">
+                                    Destination Root Folder
+                                </label>
+                                {loading ? (
+                                    <div className="text-sm text-text-secondary">Loading folders...</div>
+                                ) : error ? (
+                                    <div className="text-sm text-red-500">{error}</div>
+                                ) : (
+                                    <select
+                                        value={selectedRootFolder || ''}
+                                        onChange={(e) => setSelectedRootFolder(Number(e.target.value))}
+                                        className="w-full bg-gray-800 text-white p-2 rounded"
+                                    >
+                                        {rootFolders.map((folder) => (
+                                            <option key={folder.id} value={folder.id}>
+                                                {folder.path} ({formatFreeSpace(folder.free_space)})
+                                            </option>
+                                        ))}
+                                    </select>
+                                )}
+                            </div>
+
+                            {/* Search Checkbox */}
+                            <div>
+                                <label className="flex items-center text-sm text-text-secondary">
+                                    <input
+                                        type="checkbox"
+                                        name="should_search"
+                                        className="mr-2"
+                                    />
+                                    Search for game
+                                </label>
+                            </div>
+
+                            {/* Buttons */}
+                            <div className="flex gap-4">
+                                <button
+                                    type="submit"
+                                    className="flex-grow bg-primary text-white px-4 py-2 rounded hover:bg-primary-hover transition"
                                 >
-                                    {rootFolders.map((folder) => (
-                                        <option key={folder.id} value={folder.id}>
-                                            {folder.path} ({formatFreeSpace(folder.free_space)})
-                                        </option>
-                                    ))}
-                                </select>
-                            )}
-                        </div>
-
-                        {/* Search Checkbox */}
-                        <div className="mb-4">
-                            <label className="flex items-center text-sm text-text-secondary">
-                                <input
-                                    type="checkbox"
-                                    name="should_search"
-                                    className="mr-2"
-                                />
-                                Search for game
-                            </label>
-                        </div>
-
-                        {/* Buttons */}
-                        <div className="flex gap-4">
-                            <button
-                                type="submit"
-                                className="flex-grow bg-primary text-white px-4 py-2 rounded hover:bg-primary-hover transition"
-                            >
-                                Add to Library
-                            </button>
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                className="flex-grow bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600 transition"
-                            >
-                                Close
-                            </button>
+                                    Add to Library
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className="flex-grow bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600 transition"
+                                >
+                                    Close
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </form>

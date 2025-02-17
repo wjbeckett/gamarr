@@ -3,7 +3,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import DeleteGameModal from '../../components/DeleteGameModal';
 import ErrorBoundary from '../../components/ErrorBoundary';
-import FileManagement from '../../../components/FileManagement';
+import FileManagement from '../../components/FileManagement';
 
 export const dynamic = 'force-dynamic';
 

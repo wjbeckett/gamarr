@@ -88,11 +88,11 @@ export default function SearchResultModal({ game, isOpen, onClose, onAddGame }) 
                         )}
                         
                         {/* Metadata Section */}
-                        <div className="mt-4 space-y-4">
+                        <div className="mt-4 space-y-4 max-w-full">
                             {/* Release Year */}
                             {game.releaseDate && (
                                 <div className="flex items-center gap-2">
-                                <i className="fas fa-calendar-alt text-text-secondary" />
+                                <i className="fas fa-calendar-alt text-text-secondary shrink-0" />
                                 <span className="bg-gray-700 text-white px-2 py-1 rounded-md text-xs">
                                     {new Date(game.releaseDate).getFullYear()}
                                 </span>
@@ -101,16 +101,16 @@ export default function SearchResultModal({ game, isOpen, onClose, onAddGame }) 
 
                             {/* Platforms */}
                             {game.platforms && game.platforms.length > 0 && (
-                                <div>
+                                <div className="w-full">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <i className="fas fa-gamepad text-text-secondary" />
+                                    <i className="fas fa-gamepad text-text-secondary shrink-0" />
                                     <span className="text-sm font-semibold text-text-secondary">Platforms</span>
                                 </div>
-                                <div className="flex flex-wrap gap-2">
+                                <div className="w-full flex flex-wrap gap-2 overflow-hidden">
                                     {game.platforms.map((platform, index) => (
                                     <span
                                         key={index}
-                                        className="bg-gray-700 text-white px-2 py-1 rounded-md text-xs break-words"
+                                        className="inline-flex bg-gray-700 text-white px-2 py-1 rounded-md text-xs whitespace-normal"
                                     >
                                         {platform}
                                     </span>
@@ -121,16 +121,16 @@ export default function SearchResultModal({ game, isOpen, onClose, onAddGame }) 
 
                             {/* Genres */}
                             {game.genres && game.genres.length > 0 && (
-                                <div>
+                                <div className="w-full">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <i className="fas fa-tags text-text-secondary" />
+                                    <i className="fas fa-tags text-text-secondary shrink-0" />
                                     <span className="text-sm font-semibold text-text-secondary">Genres</span>
                                 </div>
-                                <div className="flex flex-wrap gap-2">
+                                <div className="w-full flex flex-wrap gap-2 overflow-hidden">
                                     {game.genres.map((genre, index) => (
                                     <span
                                         key={index}
-                                        className="bg-gray-700 text-white px-2 py-1 rounded-md text-xs break-words"
+                                        className="inline-flex bg-gray-700 text-white px-2 py-1 rounded-md text-xs whitespace-normal"
                                     >
                                         {genre}
                                     </span>
@@ -141,16 +141,16 @@ export default function SearchResultModal({ game, isOpen, onClose, onAddGame }) 
 
                             {/* Developers */}
                             {game.developers && game.developers.length > 0 && (
-                                <div>
+                                <div className="w-full">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <i className="fas fa-code text-text-secondary" />
+                                    <i className="fas fa-code text-text-secondary shrink-0" />
                                     <span className="text-sm font-semibold text-text-secondary">Developers</span>
                                 </div>
-                                <div className="flex flex-wrap gap-2">
+                                <div className="w-full flex flex-wrap gap-2 overflow-hidden">
                                     {game.developers.map((developer, index) => (
                                     <span
                                         key={index}
-                                        className="bg-gray-700 text-white px-2 py-1 rounded-md text-xs break-words"
+                                        className="inline-flex bg-gray-700 text-white px-2 py-1 rounded-md text-xs whitespace-normal"
                                     >
                                         {developer}
                                     </span>

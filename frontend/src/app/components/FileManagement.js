@@ -28,6 +28,16 @@ export default function FileManagement({ versions }) {
         }
     };
 
+    const handleDeleteVersion = (versionPath) => {
+        console.log(`Delete version at path: ${versionPath}`);
+        // TODO: Implement delete functionality
+    };
+
+    const handleDownloadVersion = (versionPath) => {
+        console.log(`Download version at path: ${versionPath}`);
+        // TODO: Implement download functionality
+    };
+
     return (
         <div className="bg-card rounded-xl p-6 shadow-lg">
             <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center">
@@ -51,9 +61,23 @@ export default function FileManagement({ versions }) {
                             {versions.map((version) => (
                                 <React.Fragment key={version.version}>
                                     <tr className={`hover:bg-gray-800 ${expandedVersion === version.version ? 'bg-gray-800' : ''}`}>
-                                        <td className="py-2 px-4 text-text-primary">v{version.version}</td>
+                                        <td className="py-2 px-4 text-text-primary">
+                                            <button
+                                                className="text-blue-400 hover:text-blue-500"
+                                                onClick={() => toggleExpand(version.version)}
+                                            >
+                                                {expandedVersion === version.version ? '-' : '+'}
+                                            </button>
+                                            v{version.version}
+                                        </td>
                                         <td className="py-2 px-4 text-text-secondary">
-                                            {version.size ? `${(version.size / (1024 * 1024)).toFixed(2)} MB` : 'Unknown'}
+                                            {version.size ? (() => {
+                                                const sizeInGB = version.size / (1024 * 1024 * 1024);
+                                                const sizeInMB = version.size / (1024 * 1024);
+                                                return sizeInGB >= 1 
+                                                    ? `${sizeInGB.toFixed(2)} GB` 
+                                                    : `${sizeInMB.toFixed(2)} MB`;
+                                            })() : 'Unknown'}
                                         </td>
                                         <td className="py-2 px-4">
                                             <span className={`px-2 py-1 rounded text-xs ${
@@ -73,8 +97,21 @@ export default function FileManagement({ versions }) {
                                             >
                                                 <i className="fas fa-file-alt" />
                                             </button>
+                                            <button
+                                                className="text-red-400 hover:text-red-500"
+                                                onClick={() => handleDeleteVersion(version.path)}
+                                            >
+                                                <i className="fas fa-trash-alt" />
+                                            </button>
                                         </td>
                                     </tr>
+                                    {expandedVersion === version.version && (
+                                        <tr>
+                                            <td colSpan="4" className="py-2 px-4 text-text-secondary">
+                                                File Path: {version.path}
+                                            </td>
+                                        </tr>
+                                    )}
                                 </React.Fragment>
                             ))}
                         </tbody>

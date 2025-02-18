@@ -1,13 +1,13 @@
 'use client';
 import { useParams, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import DeleteGameModal from '../../components/DeleteGameModal';
 import ErrorBoundary from '../../components/ErrorBoundary';
 import FileManagement from '../../components/FileManagement';
 
 export const dynamic = 'force-dynamic';
 
-function FileLocationInfo({ path, libraryLocation, status, gameId }) {
+const FileLocationInfo = ({ path, libraryLocation, status, gameId }) => {
     const [exists, setExists] = useState(null);
     const [versionInfo, setVersionInfo] = useState(null);
     const [loading, setLoading] = useState(true);

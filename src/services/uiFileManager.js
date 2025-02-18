@@ -9,9 +9,9 @@ class UIFileManager {
             throw new Error('NFO file not found');
         }
         try {
-            // Read the raw buffer and decode with iconv-lite
+            // Read the raw buffer and decode with CP437
             const buffer = await fs.readFile(nfoPath);
-            const content = iconv.decode(buffer, 'utf-8');
+            const content = iconv.decode(buffer, 'cp437'); // Use CP437 encoding for NFO files
             logger.debug(`Fetched NFO content from: ${nfoPath}`);
             
             // Parse the content
@@ -33,7 +33,7 @@ class UIFileManager {
             const patchNotesMatch = nfoContent.match(/PatchNotes:\s*(.+)/i);
             const requiredReleasesMatch = nfoContent.match(/The following releases are required for this update:\s*([\s\S]+?)\n\n/i);
             const installInstructionsMatch = nfoContent.match(/\d+\.\s*([\s\S]+?)(?=\n\n|\n[A-Z]|$)/);
-
+    
             return {
                 patchNotes: patchNotesMatch ? patchNotesMatch[1].trim() : null,
                 requiredReleases: requiredReleasesMatch
@@ -42,7 +42,7 @@ class UIFileManager {
                 installInstructions: installInstructionsMatch
                     ? installInstructionsMatch[1].split('\n').map(line => line.trim())
                     : []
-            };
+            }; 
         } catch (error) {
             logger.error('Error parsing NFO content:', error);
             return {

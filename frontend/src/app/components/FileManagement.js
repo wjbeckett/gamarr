@@ -62,12 +62,6 @@ export default function FileManagement({ versions }) {
                                 <React.Fragment key={version.version}>
                                     <tr className={`hover:bg-gray-800 ${expandedVersion === version.version ? 'bg-gray-800' : ''}`}>
                                         <td className="py-2 px-4 text-text-primary">
-                                            <button
-                                                className="text-blue-400 hover:text-blue-500"
-                                                onClick={() => toggleExpand(version.version)}
-                                            >
-                                                {expandedVersion === version.version ? '-' : '+'}
-                                            </button>
                                             v{version.version}
                                         </td>
                                         <td className="py-2 px-4 text-text-secondary">
@@ -92,6 +86,16 @@ export default function FileManagement({ versions }) {
                                         </td>
                                         <td className="py-2 px-4 flex gap-2">
                                             <button
+                                                className="text-blue-400 hover:text-blue-500"
+                                                onClick={() => toggleExpand(version.version)}
+                                            >
+                                                <i className={`fas ${
+                                                    expandedVersion === version.version
+                                                        ? 'fa-chevron-up'
+                                                        : 'fa-chevron-down'
+                                                }`} />
+                                            </button>
+                                            <button
                                                 className={`text-yellow-400 ${version.nfoPath ? 'hover:text-yellow-500' : 'opacity-50 cursor-not-allowed'}`}
                                                 onClick={() => version.nfoPath && fetchNfoContent(version.nfoPath)}
                                                 disabled={!version.nfoPath}
@@ -109,8 +113,11 @@ export default function FileManagement({ versions }) {
                                     </tr>
                                     {expandedVersion === version.version && (
                                         <tr>
-                                            <td colSpan="4" className="py-2 px-4 text-text-secondary">
-                                                File Path: {version.path}
+                                            <td colSpan="4" className="py-2 px-4 bg-gray-900 text-text-secondary">
+                                            <p><strong>File Path:</strong> {version.path || 'Unknown'}</p>
+                                            {version.nfoContent?.parsed?.patchNotes && (
+                                                    <p><strong>Patch Notes:</strong> {version.nfoContent.parsed.patchNotes}</p>
+                                                )}
                                             </td>
                                         </tr>
                                     )}

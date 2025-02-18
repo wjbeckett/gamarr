@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 import { useState } from 'react';
 import NfoModal from './NfoModal';
 
@@ -27,7 +28,7 @@ export default function FileManagement({ versions, nfoPath }) {
         <div className="bg-card rounded-xl p-6 shadow-lg">
             <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center">
                 <i className="fas fa-folder-open mr-2" />
-                Game Versions
+                Versions
             </h3>
             {versions.length === 0 ? (
                 <p className="text-text-secondary">No versions available to manage.</p>

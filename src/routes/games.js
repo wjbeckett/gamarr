@@ -29,13 +29,10 @@ router.get('/nfo', async (req, res) => {
     const { path: nfoPath } = req.query;
     
     try {
-        const nfoContent = await uiFileManager.fetchNfoContent(nfoPath);
-        const parsedContent = uiFileManager.parseNfoContent(nfoContent);
-        res.json({
-            raw: nfoContent,
-            parsed: parsedContent
-        });
+        const nfoData = await uiFileManager.fetchNfoContent(nfoPath);
+        res.json(nfoData);
     } catch (error) {
+        logger.error('Error fetching NFO content:', error);
         res.status(500).json({ error: error.message });
     }
 });

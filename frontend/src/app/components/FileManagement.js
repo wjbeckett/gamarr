@@ -1,6 +1,5 @@
 'use client';
-import React from 'react';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import NfoModal from './NfoModal';
 
 export default function FileManagement({ versions }) {

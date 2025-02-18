@@ -1,4 +1,4 @@
-const fs = require('fs/promises');
+const fs = require('fs-extra');
 const path = require('path');
 const logger = require('../config/logger');
 
@@ -37,6 +37,25 @@ class UIFileManager {
                 installInstructions: []
             };
         }
+    }
+
+    getFolderSize(folderPath) {
+        let totalSize = 0;
+        try {
+            const files = fs.readdirSync(folderPath);
+            files.forEach(file => {
+                const filePath = path.join(folderPath, file);
+                const stats = fs.statSync(filePath);
+                if (stats.isFile()) {
+                    totalSize += stats.size;
+                } else if (stats.isDirectory()) {
+                    totalSize += this.getFolderSize(filePath); // Recursively calculate size for subdirectories
+                }
+            });
+        } catch (error) {
+            logger.error(`Error calculating folder size for ${folderPath}:`, error);
+        }
+        return totalSize;
     }
 }
 

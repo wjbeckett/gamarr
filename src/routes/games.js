@@ -208,45 +208,45 @@ router.get('/:id', validateGameJson, (req, res) => {
                             return fs.statSync(itemPath).isDirectory();
                         });
 
-                    const versions = subfolders
-                        .map(folder => {
-                            const match = folder.match(/^v?(\d+\.\d+\.\d+\.\d+)/);
-                            if (!match) return null;
-
-                            const folderPath = path.join(game.destination_path, folder);
-                            const size = uiFileManager.getFolderSize(folderPath); // Use helper to calculate size
-                            const nfoPath = fs.existsSync(path.join(folderPath, 'info.nfo')) 
-                                ? path.join(folderPath, 'info.nfo') 
-                                : null;
-
-                            return {
-                                folder,
-                                version: match[1],
-                                path: folderPath,
-                                size: size > 0 ? size : null, // Set size or null if empty
-                                nfoPath,
-                                status: size > 0 ? 'completed' : 'empty' // Set status
-                            };
-                        })
-                        .filter(Boolean)
-                        .sort((a, b) => {
-                            return b.version.localeCompare(a.version, undefined, 
-                                { numeric: true, sensitivity: 'base' });
-                        });
-
-                    if (versions.length > 0) {
-                        latestVersion = versions[0].version;
-                        allVersions = versions.map(v => ({
-                            version: v.version,
-                            path: v.path,
-                            size: v.size,
-                            status: v.status,
-                            nfoPath: v.nfoPath
-                        }));
-                        status = 'completed';
-                    } else {
-                        status = 'pending';
-                    }
+                        const versions = subfolders
+                            .map(folder => {
+                                const match = folder.match(/^v?(\d+\.\d+\.\d+\.\d+)/);
+                                if (!match) return null;
+                        
+                                const folderPath = path.join(game.destination_path, folder);
+                                const size = uiFileManager.getFolderSize(folderPath); // Use helper to calculate size
+                                const nfoPath = fs.existsSync(path.join(folderPath, 'info.nfo')) 
+                                    ? path.join(folderPath, 'info.nfo') 
+                                    : null;
+                        
+                                return {
+                                    folder,
+                                    version: match[1],
+                                    path: folderPath,
+                                    size: size > 0 ? size : null, // Set size or null if empty
+                                    nfoPath,
+                                    status: size > 0 ? 'completed' : 'empty' // Set status
+                                };
+                            })
+                            .filter(Boolean)
+                            .sort((a, b) => {
+                                return b.version.localeCompare(a.version, undefined, 
+                                    { numeric: true, sensitivity: 'base' });
+                            });
+                        
+                        if (versions.length > 0) {
+                            latestVersion = versions[0].version;
+                            allVersions = versions.map(v => ({
+                                version: v.version,
+                                path: v.path,
+                                size: v.size,
+                                status: v.status,
+                                nfoPath: v.nfoPath
+                            }));
+                            status = 'completed';
+                        } else {
+                            status = 'pending';
+                        }
                 } catch (error) {
                     logger.error(`Error reading versions for game ${game.name}:`, error);
                     status = 'error';

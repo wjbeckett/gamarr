@@ -1,13 +1,27 @@
 const fs = require('fs-extra');
 const path = require('path');
 const logger = require('../config/logger');
+const iconv = require('iconv-lite');
 
 class UIFileManager {
     async fetchNfoContent(nfoPath) {
+        if (!nfoPath || !fs.existsSync(nfoPath)) {
+            throw new Error('NFO file not found');
+        }
         try {
-            const content = await fs.readFile(nfoPath, 'utf-8');
+            // Read the raw buffer and decode with iconv-lite
+            const buffer = await fs.readFile(nfoPath);
+            const content = iconv.decode(buffer, 'utf-8');
             logger.debug(`Fetched NFO content from: ${nfoPath}`);
-            return content;
+            
+            // Parse the content
+            const parsed = this.parseNfoContent(content);
+            
+            // Return both raw and parsed content
+            return {
+                raw: content,
+                parsed: parsed
+            };
         } catch (error) {
             logger.error(`Error reading NFO file at ${nfoPath}:`, error);
             throw new Error('Failed to fetch NFO content');

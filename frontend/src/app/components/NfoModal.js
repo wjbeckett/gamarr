@@ -13,7 +13,8 @@ export default function NfoModal({ isOpen, onClose, content }) {
                         <i className="fas fa-times" />
                     </button>
                 </div>
-                
+
+                {/* Parsed Content */}
                 {content?.parsed && (
                     <div className="mb-4 space-y-4">
                         {content.parsed.patchNotes && (
@@ -22,7 +23,7 @@ export default function NfoModal({ isOpen, onClose, content }) {
                                 <p className="text-text-primary">{content.parsed.patchNotes}</p>
                             </div>
                         )}
-                        
+
                         {content.parsed.requiredReleases.length > 0 && (
                             <div>
                                 <h4 className="text-sm font-semibold text-text-secondary mb-2">Required Releases</h4>
@@ -33,7 +34,7 @@ export default function NfoModal({ isOpen, onClose, content }) {
                                 </ul>
                             </div>
                         )}
-                        
+
                         {content.parsed.installInstructions.length > 0 && (
                             <div>
                                 <h4 className="text-sm font-semibold text-text-secondary mb-2">Install Instructions</h4>
@@ -47,6 +48,7 @@ export default function NfoModal({ isOpen, onClose, content }) {
                     </div>
                 )}
 
+                {/* Raw Content */}
                 <div className="mt-4 border-t border-border-dark pt-4">
                     <h4 className="text-sm font-semibold text-text-secondary mb-2">Raw NFO Content</h4>
                     <pre className="bg-gray-800 text-white p-4 rounded overflow-auto max-h-96 text-sm">

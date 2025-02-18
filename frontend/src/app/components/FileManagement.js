@@ -11,16 +11,21 @@ export default function FileManagement({ versions }) {
         setExpandedVersion(expandedVersion === versionId ? null : versionId);
     };
 
-    const fetchNfoContent = async (nfoPath) => {
+    const fetchNfoContent = async (nfoPath, version) => {
         if (!nfoPath) {
             console.error('NFO path is undefined');
             return;
         }
-
+        
         try {
             const res = await fetch(`/api/games/nfo?path=${encodeURIComponent(nfoPath)}`);
             if (!res.ok) throw new Error('Failed to fetch NFO content');
             const data = await res.json();
+            
+            // Store the NFO content with the version
+            version.nfoContent = data;
+            
+            // Update state to trigger re-render
             setNfoContent(data);
             setIsNfoModalOpen(true);
         } catch (err) {
@@ -97,7 +102,7 @@ export default function FileManagement({ versions }) {
                                             </button>
                                             <button
                                                 className={`text-yellow-400 ${version.nfoPath ? 'hover:text-yellow-500' : 'opacity-50 cursor-not-allowed'}`}
-                                                onClick={() => version.nfoPath && fetchNfoContent(version.nfoPath)}
+                                                onClick={() => version.nfoPath && fetchNfoContent(version.nfoPath, version)}
                                                 disabled={!version.nfoPath}
                                                 title={version.nfoPath ? 'View NFO' : 'No NFO file available'}
                                             >
@@ -113,11 +118,42 @@ export default function FileManagement({ versions }) {
                                     </tr>
                                     {expandedVersion === version.version && (
                                         <tr>
-                                            <td colSpan="4" className="py-2 px-4 bg-gray-900 text-text-secondary">
-                                            <p><strong>File Path:</strong> {version.path || 'Unknown'}</p>
-                                            {version.nfoContent?.parsed?.patchNotes && (
-                                                    <p><strong>Patch Notes:</strong> {version.nfoContent.parsed.patchNotes}</p>
-                                                )}
+                                            <td colSpan="4" className="py-4 px-6 bg-gray-900 text-text-secondary space-y-2">
+                                                <div className="space-y-2">
+                                                    <p><strong>File Path:</strong> {version.path || 'Unknown'}</p>
+                                                    
+                                                    {/* Patch Notes Section */}
+                                                    {version.nfoContent?.parsed?.patchNotes && (
+                                                        <div>
+                                                            <strong className="text-yellow-400">Patch Notes:</strong>
+                                                            <p className="ml-4">{version.nfoContent.parsed.patchNotes}</p>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Required Releases Section */}
+                                                    {version.nfoContent?.parsed?.requiredReleases?.length > 0 && (
+                                                        <div>
+                                                            <strong className="text-yellow-400">Required Releases:</strong>
+                                                            <ul className="ml-8 list-disc">
+                                                                {version.nfoContent.parsed.requiredReleases.map((release, index) => (
+                                                                    <li key={index}>{release}</li>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Install Instructions Section */}
+                                                    {version.nfoContent?.parsed?.installInstructions?.length > 0 && (
+                                                        <div>
+                                                            <strong className="text-yellow-400">Install Instructions:</strong>
+                                                            <ol className="ml-8 list-decimal">
+                                                                {version.nfoContent.parsed.installInstructions.map((instruction, index) => (
+                                                                    <li key={index}>{instruction}</li>
+                                                                ))}
+                                                            </ol>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     )}

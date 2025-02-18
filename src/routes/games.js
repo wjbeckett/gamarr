@@ -199,16 +199,56 @@ router.get('/:id', validateGameJson, (req, res) => {
 
             // Check if the destination path exists
             let status = 'missing';
+            let allVersions = [];
+            let latestVersion = null;
+
             if (game.destination_path && fs.existsSync(game.destination_path)) {
-                status = 'pending'; // Path exists but no versions discovered yet
+                try {
+                    // Discover subfolders in the destination path
+                    const subfolders = fs.readdirSync(game.destination_path)
+                        .filter(item => {
+                            const itemPath = path.join(game.destination_path, item);
+                            return fs.statSync(itemPath).isDirectory();
+                        });
+
+                    // Extract version numbers from subfolder names
+                    const versions = subfolders
+                        .map(folder => {
+                            const match = folder.match(/^v?(\d+\.\d+\.\d+\.\d+)/);
+                            return match ? {
+                                folder,
+                                version: match[1],
+                                path: path.join(game.destination_path, folder)
+                            } : null;
+                        })
+                        .filter(Boolean)
+                        .sort((a, b) => {
+                            return b.version.localeCompare(a.version, undefined, 
+                                { numeric: true, sensitivity: 'base' });
+                        });
+
+                    if (versions.length > 0) {
+                        latestVersion = versions[0].version;
+                        allVersions = versions.map(v => ({
+                            version: v.version,
+                            path: v.path
+                        }));
+                        status = 'completed'; // Update status to 'completed' if versions are found
+                    } else {
+                        status = 'pending'; // Path exists but no version folders found
+                    }
+                } catch (error) {
+                    logger.error(`Error reading versions for game ${game.name}:`, error);
+                    status = 'error';
+                }
             }
 
             const enrichedGame = {
                 ...game,
                 metadata, // Send already parsed metadata
                 status,   // Add the status field
-                allVersions: [], // Placeholder for now
-                latestVersion: null // Placeholder for now
+                allVersions, // Add discovered versions
+                latestVersion // Add the latest version
             };
 
             res.json(enrichedGame);

@@ -194,32 +194,39 @@ router.get('/:id', validateGameJson, (req, res) => {
         }
 
         try {
-            // Ensure metadata is always valid JSON
             const metadata = game.metadata ? JSON.parse(game.metadata) : null;
 
-            // Check if the destination path exists
             let status = 'missing';
             let allVersions = [];
             let latestVersion = null;
 
             if (game.destination_path && fs.existsSync(game.destination_path)) {
                 try {
-                    // Discover subfolders in the destination path
                     const subfolders = fs.readdirSync(game.destination_path)
                         .filter(item => {
                             const itemPath = path.join(game.destination_path, item);
                             return fs.statSync(itemPath).isDirectory();
                         });
 
-                    // Extract version numbers from subfolder names
                     const versions = subfolders
                         .map(folder => {
                             const match = folder.match(/^v?(\d+\.\d+\.\d+\.\d+)/);
-                            return match ? {
+                            if (!match) return null;
+
+                            const folderPath = path.join(game.destination_path, folder);
+                            const size = uiFileManager.getFolderSize(folderPath); // Use helper to calculate size
+                            const nfoPath = fs.existsSync(path.join(folderPath, 'info.nfo')) 
+                                ? path.join(folderPath, 'info.nfo') 
+                                : null;
+
+                            return {
                                 folder,
                                 version: match[1],
-                                path: path.join(game.destination_path, folder)
-                            } : null;
+                                path: folderPath,
+                                size: size > 0 ? size : null, // Set size or null if empty
+                                nfoPath,
+                                status: size > 0 ? 'completed' : 'empty' // Set status
+                            };
                         })
                         .filter(Boolean)
                         .sort((a, b) => {
@@ -231,11 +238,14 @@ router.get('/:id', validateGameJson, (req, res) => {
                         latestVersion = versions[0].version;
                         allVersions = versions.map(v => ({
                             version: v.version,
-                            path: v.path
+                            path: v.path,
+                            size: v.size,
+                            status: v.status,
+                            nfoPath: v.nfoPath
                         }));
-                        status = 'completed'; // Update status to 'completed' if versions are found
+                        status = 'completed';
                     } else {
-                        status = 'pending'; // Path exists but no version folders found
+                        status = 'pending';
                     }
                 } catch (error) {
                     logger.error(`Error reading versions for game ${game.name}:`, error);
@@ -245,10 +255,10 @@ router.get('/:id', validateGameJson, (req, res) => {
 
             const enrichedGame = {
                 ...game,
-                metadata, // Send already parsed metadata
-                status,   // Add the status field
-                allVersions, // Add discovered versions
-                latestVersion // Add the latest version
+                metadata,
+                status,
+                allVersions,
+                latestVersion
             };
 
             res.json(enrichedGame);

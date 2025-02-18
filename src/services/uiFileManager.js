@@ -14,12 +14,15 @@ class UIFileManager {
             const content = iconv.decode(buffer, 'cp437'); // Use CP437 encoding for NFO files
             logger.debug(`Fetched NFO content from: ${nfoPath}`);
             
-            // Parse the content
-            const parsed = this.parseNfoContent(content);
+            // Clean up the content by stripping non-printable characters
+            const cleanedContent = content.replace(/[^\x20-\x7E\n\r]/g, ''); // Keep printable ASCII characters only
+            
+            // Parse the cleaned content
+            const parsed = this.parseNfoContent(cleanedContent);
             
             // Return both raw and parsed content
             return {
-                raw: content,
+                raw: cleanedContent,
                 parsed: parsed
             };
         } catch (error) {
@@ -30,6 +33,8 @@ class UIFileManager {
 
     parseNfoContent(nfoContent) {
         try {
+            logger.debug('Parsing NFO content:', nfoContent);
+    
             const patchNotesMatch = nfoContent.match(/PatchNotes:\s*(.+)/i);
             const requiredReleasesMatch = nfoContent.match(/The following releases are required for this update:\s*([\s\S]+?)\n\n/i);
             const installInstructionsMatch = nfoContent.match(/\d+\.\s*([\s\S]+?)(?=\n\n|\n[A-Z]|$)/);
@@ -42,7 +47,7 @@ class UIFileManager {
                 installInstructions: installInstructionsMatch
                     ? installInstructionsMatch[1].split('\n').map(line => line.trim())
                     : []
-            }; 
+            };
         } catch (error) {
             logger.error('Error parsing NFO content:', error);
             return {

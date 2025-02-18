@@ -130,7 +130,6 @@ export default function FileManagement({ versions }) {
                                                         </div>
                                                     )}
 
-                                                    {/* Required Releases Section */}
                                                     {version.nfoContent?.parsed?.requiredReleases?.length > 0 && (
                                                         <div>
                                                             <strong className="text-yellow-400">Required Releases:</strong>
@@ -142,7 +141,6 @@ export default function FileManagement({ versions }) {
                                                         </div>
                                                     )}
 
-                                                    {/* Install Instructions Section */}
                                                     {version.nfoContent?.parsed?.installInstructions?.length > 0 && (
                                                         <div>
                                                             <strong className="text-yellow-400">Install Instructions:</strong>

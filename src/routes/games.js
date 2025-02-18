@@ -176,14 +176,14 @@ router.get('/', (req, res) => {
 // Get game details
 router.get('/:id', validateGameJson, (req, res) => {
     const { id } = req.params;
-    
+
     db.get(`
-        SELECT 
-          g.*,
-          r.path as root_folder_name
-        FROM games g
-        LEFT JOIN root_folders r ON g.root_folder_id = r.id
-        WHERE g.id = ?
+    SELECT 
+        g.*,
+        r.path as root_folder_name
+    FROM games g
+    LEFT JOIN root_folders r ON g.root_folder_id = r.id
+    WHERE g.id = ?
     `, [id], async (err, game) => {
         if (err) {
             logger.error('Error fetching game:', err);
@@ -195,20 +195,27 @@ router.get('/:id', validateGameJson, (req, res) => {
 
         try {
             // Ensure metadata is always valid JSON
-            const metadata = game.metadata ? 
-              JSON.parse(game.metadata) : 
-              null;
-        
+            const metadata = game.metadata ? JSON.parse(game.metadata) : null;
+
+            // Check if the destination path exists
+            let status = 'missing';
+            if (game.destination_path && fs.existsSync(game.destination_path)) {
+                status = 'pending'; // Path exists but no versions discovered yet
+            }
+
             const enrichedGame = {
-              ...game,
-              metadata  // Send already parsed metadata
+                ...game,
+                metadata, // Send already parsed metadata
+                status,   // Add the status field
+                allVersions: [], // Placeholder for now
+                latestVersion: null // Placeholder for now
             };
-        
+
             res.json(enrichedGame);
-          } catch (error) {
+        } catch (error) {
             logger.error('Error parsing metadata:', error);
             res.status(500).json({ error: 'Invalid game data format' });
-          }
+        }
     });
 });
 

@@ -7,6 +7,23 @@ const path = require('path');
 const { validateGameJson } = require('../utils/validateJson');
 const uiFileManager = require('../services/uiFileManager');
 
+// Helper function to find NFO files in a folder
+function findNfoFile(folderPath) {
+    try {
+        const files = fs.readdirSync(folderPath);
+        const nfoFile = files.find(file => file.toLowerCase().endsWith('.nfo'));
+        if (nfoFile) {
+            logger.debug(`Found NFO file: ${nfoFile} in ${folderPath}`);
+            return path.join(folderPath, nfoFile);
+        }
+        logger.debug(`No NFO file found in ${folderPath}`);
+        return null;
+    } catch (error) {
+        logger.error(`Error searching for NFO file in ${folderPath}:`, error);
+        return null;
+    }
+}
+
 
 router.get('/nfo', async (req, res) => {
     const { path: nfoPath } = req.query;
@@ -212,20 +229,18 @@ router.get('/:id', validateGameJson, (req, res) => {
                             .map(folder => {
                                 const match = folder.match(/^v?(\d+\.\d+\.\d+\.\d+)/);
                                 if (!match) return null;
-                        
+                                
                                 const folderPath = path.join(game.destination_path, folder);
-                                const size = uiFileManager.getFolderSize(folderPath); // Use helper to calculate size
-                                const nfoPath = fs.existsSync(path.join(folderPath, 'info.nfo')) 
-                                    ? path.join(folderPath, 'info.nfo') 
-                                    : null;
-                        
+                                const size = uiFileManager.getFolderSize(folderPath);
+                                const nfoPath = findNfoFile(folderPath);
+                                
                                 return {
                                     folder,
                                     version: match[1],
                                     path: folderPath,
-                                    size: size > 0 ? size : null, // Set size or null if empty
+                                    size: size || null,
                                     nfoPath,
-                                    status: size > 0 ? 'completed' : 'empty' // Set status
+                                    status: size > 0 ? 'completed' : 'empty'
                                 };
                             })
                             .filter(Boolean)

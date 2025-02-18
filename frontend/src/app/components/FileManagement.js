@@ -92,8 +92,10 @@ export default function FileManagement({ versions }) {
                                         </td>
                                         <td className="py-2 px-4 flex gap-2">
                                             <button
-                                                className="text-yellow-400 hover:text-yellow-500"
-                                                onClick={() => fetchNfoContent(version.nfoPath)}
+                                                className={`text-yellow-400 ${version.nfoPath ? 'hover:text-yellow-500' : 'opacity-50 cursor-not-allowed'}`}
+                                                onClick={() => version.nfoPath && fetchNfoContent(version.nfoPath)}
+                                                disabled={!version.nfoPath}
+                                                title={version.nfoPath ? 'View NFO' : 'No NFO file available'}
                                             >
                                                 <i className="fas fa-file-alt" />
                                             </button>

@@ -42,62 +42,86 @@ class UIFileManager {
                 requiredReleases: []
             };
     
-            // Split the content into lines for easier processing
-            const lines = nfoContent.split('\n').map(line => line.trim());
-    
+            // Split the content into lines
+            const lines = nfoContent.split('\n');
             let currentSection = null;
+            let currentNote = '';
+            let isASCIIArt = false;
     
-            for (const line of lines) {
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
                 const lowerLine = line.toLowerCase();
+    
+                // Skip ASCII art sections
+                if (line.includes('_____') || line.includes('|__|') || line.match(/^\|[\w\s|.-]+\|$/)) {
+                    isASCIIArt = true;
+                    continue;
+                }
+    
+                // Reset ASCII art flag if we hit a blank line
+                if (line === '') {
+                    isASCIIArt = false;
+                    continue;
+                }
+    
+                // Skip ASCII art lines
+                if (isASCIIArt) continue;
     
                 // Check for section headers
                 if (lowerLine.includes('general notes')) {
                     currentSection = 'generalNotes';
                     continue;
-                } else if (lowerLine.includes('install') || lowerLine.includes('unpack')) {
+                } else if (lowerLine.includes('install') || lowerLine.match(/^\d+\s*[.)]?\s*unpack/)) {
                     currentSection = 'installInstructions';
                     continue;
-                } else if (lowerLine.includes('crack') || lowerLine.includes('copy crack')) {
+                } else if (lowerLine.includes('crack') && !lowerLine.includes('crack instructions:')) {
                     currentSection = 'crackInstructions';
                     continue;
                 }
     
-                // Skip empty lines
-                if (!line.trim()) continue;
-    
                 // Process line content
-                if (currentSection) {
-                    // Remove leading numbers, dashes, or dots
-                    let cleanedLine = line.replace(/^[\d\s.-]+/, '').trim();
-                    
-                    // Skip if the line is empty after cleaning
-                    if (!cleanedLine) continue;
+                if (currentSection && line) {
+                    // Handle numbered or bulleted lines
+                    let cleanedLine = line
+                        .replace(/^\d+[.)]?\s*/, '') // Remove leading numbers
+                        .replace(/^[-•]\s*/, '')     // Remove bullet points
+                        .trim();
     
-                    // Add the cleaned line to the appropriate section
-                    if (!parsed[currentSection].includes(cleanedLine)) {
-                        parsed[currentSection].push(cleanedLine);
-                    }
-                } else {
-                    // If no section is set but line starts with a number or dash,
-                    // assume it's installation instructions
-                    if (line.match(/^[\d.-]/) && line.length > 1) {
-                        let cleanedLine = line.replace(/^[\d\s.-]+/, '').trim();
-                        if (cleanedLine && !parsed.installInstructions.includes(cleanedLine)) {
-                            parsed.installInstructions.push(cleanedLine);
+                    if (cleanedLine && !cleanedLine.match(/^[_|]/) && !cleanedLine.includes('ASCII by')) {
+                        // If the line ends with a continuation character, start building a multi-line note
+                        if (cleanedLine.endsWith('..') || cleanedLine.endsWith('...')) {
+                            currentNote = cleanedLine.replace(/\.+$/, ' ');
+                        } else if (currentNote) {
+                            // If we have a current note, append this line and add the complete note
+                            currentNote += cleanedLine;
+                            if (!parsed[currentSection].includes(currentNote)) {
+                                parsed[currentSection].push(currentNote);
+                            }
+                            currentNote = '';
+                        } else {
+                            // Regular single-line note
+                            if (!parsed[currentSection].includes(cleanedLine)) {
+                                parsed[currentSection].push(cleanedLine);
+                            }
                         }
                     }
                 }
             }
     
-            // Clean up empty sections
-            for (const key in parsed) {
-                parsed[key] = parsed[key].filter(line => line.length > 0);
+            // Add any remaining currentNote
+            if (currentNote && currentSection) {
+                parsed[currentSection].push(currentNote.trim());
             }
     
-            // If no section was explicitly found but we have install instructions,
-            // those were likely from numbered steps
-            if (parsed.installInstructions.length > 0 && !currentSection) {
-                currentSection = 'installInstructions';
+            // Clean up empty sections and filter out ASCII art lines
+            for (const key in parsed) {
+                parsed[key] = parsed[key]
+                    .filter(line => 
+                        line.length > 0 && 
+                        !line.match(/^[_|]/) && 
+                        !line.includes('ASCII by') &&
+                        !line.match(/^\d+$/)
+                    );
             }
     
             return parsed;

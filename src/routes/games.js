@@ -482,21 +482,23 @@ router.post('/:id/scan', async (req, res) => {
         const enrichedGame = await enrichGameWithVersions(game);
 
         // Update the database with the latest version and status
-        db.run(
-            `UPDATE games SET latest_version = ?, status = ? WHERE id = ?`,
-            [enrichedGame.latestVersion, enrichedGame.status, id],
-            (err) => {
-                if (err) {
-                    logger.error('Error updating game in database:', err);
-                    return res.status(500).json({ error: 'Failed to update game in database' });
+        await new Promise((resolve, reject) => {
+            db.run(
+                `UPDATE games SET latest_version = ?, status = ? WHERE id = ?`,
+                [enrichedGame.latestVersion, enrichedGame.status, id],
+                (err) => {
+                    if (err) reject(err);
+                    resolve();
                 }
-            }
-        );
+            );
+        });
 
         res.json(enrichedGame);
     } catch (error) {
         logger.error('Error scanning game directory:', error);
-        res.status(500).json({ error: 'Failed to scan game directory' });
+        if (!res.headersSent) {
+            res.status(500).json({ error: 'Failed to scan game directory' });
+        }
     }
 });
 

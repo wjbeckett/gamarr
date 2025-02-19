@@ -35,8 +35,8 @@ class UIFileManager {
         try {
             logger.debug('Parsing NFO content:', nfoContent);
     
-            // Detect numbered lists for installation instructions
-            const installInstructionsMatch = nfoContent.match(/^\s*\d+\s+.+/gm);
+            // Detect numbered lists or bullet points for installation instructions
+            const installInstructionsMatch = nfoContent.match(/^\s*[\d\-\*]+\s+(unpack|install|burn|mount|run|play).+/gim);
     
             // Extract patch notes
             const patchNotesMatch = nfoContent.match(/Patch Notes:\s*([\s\S]+?)(?=\n\n|\n[A-Z])/i);

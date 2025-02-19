@@ -6,6 +6,7 @@ export default function FileManagement({ versions }) {
     const [expandedVersion, setExpandedVersion] = useState(null);
     const [nfoContent, setNfoContent] = useState(null);
     const [isNfoModalOpen, setIsNfoModalOpen] = useState(false);
+    const [isLoadingNfo, setIsLoadingNfo] = useState(false); // New loading state for NFO modal
 
     const toggleExpand = (versionId) => {
         setExpandedVersion(expandedVersion === versionId ? null : versionId);
@@ -16,20 +17,23 @@ export default function FileManagement({ versions }) {
             console.error('NFO path is undefined');
             return;
         }
-        
+
         try {
+            setIsLoadingNfo(true); // Set loading state
             const res = await fetch(`/api/games/nfo?path=${encodeURIComponent(nfoPath)}`);
             if (!res.ok) throw new Error('Failed to fetch NFO content');
             const data = await res.json();
-            
+
             // Store the NFO content with the version
             version.nfoContent = data;
-            
+
             // Update state to trigger re-render
             setNfoContent(data);
             setIsNfoModalOpen(true);
         } catch (err) {
             console.error('Error fetching NFO content:', err);
+        } finally {
+            setIsLoadingNfo(false); // Reset loading state
         }
     };
 
@@ -121,7 +125,7 @@ export default function FileManagement({ versions }) {
                                             <td colSpan="4" className="py-4 px-6 bg-gray-900 text-text-secondary space-y-2">
                                                 <div className="space-y-2">
                                                     <p><strong>File Path:</strong> {version.path || 'Unknown'}</p>
-                                                    
+
                                                     {/* Patch Notes Section */}
                                                     {version.nfoContent?.parsed?.patchNotes && (
                                                         <div>
@@ -130,6 +134,7 @@ export default function FileManagement({ versions }) {
                                                         </div>
                                                     )}
 
+                                                    {/* Required Releases Section */}
                                                     {version.nfoContent?.parsed?.requiredReleases?.length > 0 && (
                                                         <div>
                                                             <strong className="text-yellow-400">Required Releases:</strong>
@@ -141,6 +146,7 @@ export default function FileManagement({ versions }) {
                                                         </div>
                                                     )}
 
+                                                    {/* Install Instructions Section */}
                                                     {version.nfoContent?.parsed?.installInstructions?.length > 0 && (
                                                         <div>
                                                             <strong className="text-yellow-400">Install Instructions:</strong>
@@ -149,6 +155,30 @@ export default function FileManagement({ versions }) {
                                                                     <li key={index}>{instruction}</li>
                                                                 ))}
                                                             </ol>
+                                                        </div>
+                                                    )}
+
+                                                    {/* General Notes Section */}
+                                                    {version.nfoContent?.parsed?.generalNotes?.length > 0 && (
+                                                        <div>
+                                                            <strong className="text-yellow-400">General Notes:</strong>
+                                                            <ul className="ml-8 list-disc">
+                                                                {version.nfoContent.parsed.generalNotes.map((note, index) => (
+                                                                    <li key={index}>{note}</li>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Crack Instructions Section */}
+                                                    {version.nfoContent?.parsed?.crackInstructions?.length > 0 && (
+                                                        <div>
+                                                            <strong className="text-yellow-400">Crack Instructions:</strong>
+                                                            <ul className="ml-8 list-disc">
+                                                                {version.nfoContent.parsed.crackInstructions.map((instruction, index) => (
+                                                                    <li key={index}>{instruction}</li>
+                                                                ))}
+                                                            </ul>
                                                         </div>
                                                     )}
                                                 </div>
@@ -165,6 +195,7 @@ export default function FileManagement({ versions }) {
                 isOpen={isNfoModalOpen}
                 onClose={() => setIsNfoModalOpen(false)}
                 content={nfoContent}
+                isLoading={isLoadingNfo} // Pass loading state to modal
             />
         </div>
     );

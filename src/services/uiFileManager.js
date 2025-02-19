@@ -34,52 +34,56 @@ class UIFileManager {
     parseNfoContent(nfoContent) {
         try {
             logger.debug('Parsing NFO content:', nfoContent);
-    
-            // Detect numbered lists or bullet points for installation instructions
-            const installInstructionsMatch = nfoContent.match(/^\s*[\d\-\*]+\s+(unpack|install|burn|mount|run|play).+/gim);
-    
-            // Extract patch notes
-            const patchNotesMatch = nfoContent.match(/Patch Notes:\s*([\s\S]+?)(?=\n\n|\n[A-Z])/i);
-    
-            // Extract required releases
-            const requiredReleasesMatch = nfoContent.match(/The following releases are required:\s*([\s\S]+?)(?=\n\n|\n[A-Z])/i);
-    
-            return {
-                patchNotes: patchNotesMatch ? patchNotesMatch[1].trim() : null,
-                requiredReleases: requiredReleasesMatch
-                    ? requiredReleasesMatch[1].split('\n').map(line => line.trim())
-                    : [],
-                installInstructions: installInstructionsMatch
-                    ? installInstructionsMatch.map(line => line.trim())
-                    : []
+            
+            const parsed = {
+                installInstructions: [],
+                generalNotes: [],
+                crackInstructions: [],
             };
+
+            // Split the content into lines for easier processing
+            const lines = nfoContent.split('\n').map(line => line.trim());
+
+            let currentSection = null;
+
+            for (const line of lines) {
+                if (line.toLowerCase().includes('install instructions') || line.toLowerCase().includes('extract')) {
+                    currentSection = 'installInstructions';
+                } else if (line.toLowerCase().includes('general notes')) {
+                    currentSection = 'generalNotes';
+                } else if (line.toLowerCase().includes('crack') || line.toLowerCase().includes('copy crack')) {
+                    currentSection = 'crackInstructions';
+                } else if (line === '' || line.startsWith('-')) {
+                    // Add the line to the current section if it matches
+                    if (currentSection) {
+                        parsed[currentSection].push(line.replace(/^-/, '').trim());
+                    }
+                }
+            }
+
+            // Clean up empty sections
+            for (const key in parsed) {
+                parsed[key] = parsed[key].filter(line => line.length > 0);
+            }
+
+            return parsed;
         } catch (error) {
             logger.error('Error parsing NFO content:', error);
             return {
-                patchNotes: null,
-                requiredReleases: [],
-                installInstructions: []
+                installInstructions: [],
+                generalNotes: [],
+                crackInstructions: []
             };
         }
     }
 
-    getFolderSize(folderPath) {
-        let totalSize = 0;
+    async fileExists(filePath) {
         try {
-            const files = fs.readdirSync(folderPath);
-            files.forEach(file => {
-                const filePath = path.join(folderPath, file);
-                const stats = fs.statSync(filePath);
-                if (stats.isFile()) {
-                    totalSize += stats.size;
-                } else if (stats.isDirectory()) {
-                    totalSize += this.getFolderSize(filePath); // Recursively calculate size for subdirectories
-                }
-            });
-        } catch (error) {
-            logger.error(`Error calculating folder size for ${folderPath}:`, error);
+            await fs.access(filePath);
+            return true;
+        } catch {
+            return false;
         }
-        return totalSize;
     }
 }
 

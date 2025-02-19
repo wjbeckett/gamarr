@@ -137,7 +137,7 @@ async function enrichGameWithVersions(game) {
 
 router.get('/nfo', async (req, res) => {
     const { path: nfoPath } = req.query;
-    
+
     try {
         const nfoData = await uiFileManager.fetchNfoContent(nfoPath);
         res.json(nfoData);

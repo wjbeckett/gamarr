@@ -63,7 +63,8 @@ function initializeDatabase() {
             root_folder_id INTEGER,
             cover_url TEXT,
             metadata TEXT,
-            latest_version TEXT, -- Added latest_version column
+            latest_version TEXT,
+            status TEXT DEFAULT 'pending',
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(root_folder_id) REFERENCES root_folders(id)
         )

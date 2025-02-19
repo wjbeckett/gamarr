@@ -24,6 +24,26 @@ function findNfoFile(folderPath) {
     }
 }
 
+async function getFolderSize(folderPath) {
+    try {
+        const files = await fs.readdir(folderPath);
+        let totalSize = 0;
+
+        for (const file of files) {
+            const filePath = path.join(folderPath, file);
+            const stats = await fs.stat(filePath);
+            if (stats.isFile()) {
+                totalSize += stats.size;
+            }
+        }
+
+        return totalSize;
+    } catch (error) {
+        logger.error(`Error calculating folder size for ${folderPath}:`, error);
+        return 0;
+    }
+}
+
 async function enrichGameWithVersions(game) {
     const { destination_path: destinationPath } = game;
 
@@ -38,42 +58,54 @@ async function enrichGameWithVersions(game) {
                 return fs.statSync(itemPath).isDirectory();
             });
 
-        const versions = subfolders
-            .map(folder => {
+        const versions = await Promise.all(
+            subfolders.map(async (folder) => {
                 const match = folder.match(/^v?(\d+\.\d+\.\d+\.\d+)/);
                 if (!match) return null;
 
                 const folderPath = path.join(destinationPath, folder);
-                const size = uiFileManager.getFolderSize(folderPath);
+                const size = await getFolderSize(folderPath);
+                
+                // Find and parse NFO file
                 const nfoPath = findNfoFile(folderPath);
-                const nfoContent = nfoPath ? uiFileManager.fetchNfoContent(nfoPath) : null;
+                let nfoContent = null;
+                if (nfoPath) {
+                    try {
+                        const nfoData = await uiFileManager.fetchNfoContent(nfoPath);
+                        nfoContent = nfoData;
+                        logger.debug(`Successfully parsed NFO file for version ${match[1]}`);
+                    } catch (error) {
+                        logger.error(`Error parsing NFO file for version ${match[1]}:`, error);
+                    }
+                }
 
                 return {
                     folder,
                     version: match[1],
                     path: folderPath,
-                    size: size || null,
+                    size,
                     nfoPath,
-                    nfoContent: nfoContent ? nfoContent.parsed : null, // Include parsed content
+                    nfoContent,
                     status: size > 0 ? 'completed' : 'empty'
                 };
             })
-            .filter(Boolean)
-            .sort((a, b) => {
-                return b.version.localeCompare(a.version, undefined, { numeric: true, sensitivity: 'base' });
-            });
+        );
 
-        const latestVersion = versions.length > 0 ? versions[0].version : null;
+        const filteredVersions = versions.filter(Boolean).sort((a, b) => {
+            return b.version.localeCompare(a.version, undefined, { numeric: true, sensitivity: 'base' });
+        });
+
+        const latestVersion = filteredVersions.length > 0 ? filteredVersions[0].version : null;
 
         return {
             ...game,
-            allVersions: versions,
+            allVersions: filteredVersions,
             latestVersion,
-            status: versions.length > 0 ? 'completed' : 'pending'
+            status: filteredVersions.length > 0 ? 'completed' : 'pending'
         };
     } catch (error) {
         logger.error(`Error enriching game with versions: ${error.message}`);
-        throw new Error('Failed to enrich game with versions');
+        throw error;
     }
 }
 
@@ -470,15 +502,12 @@ router.post('/:id/scan', async (req, res) => {
         const game = await new Promise((resolve, reject) => {
             db.get('SELECT * FROM games WHERE id = ?', [id], (err, row) => {
                 if (err) reject(err);
+                if (!row) reject(new Error('Game not found'));
                 resolve(row);
             });
         });
 
-        if (!game || !game.destination_path) {
-            return res.status(404).json({ error: 'Game or path not found' });
-        }
-
-        // Re-scan the game directory
+        // Re-scan the game directory and get enriched data (including NFO content)
         const enrichedGame = await enrichGameWithVersions(game);
 
         // Update the database with the latest version and status
@@ -493,6 +522,7 @@ router.post('/:id/scan', async (req, res) => {
             );
         });
 
+        // Return the enriched game data with parsed NFO content
         res.json(enrichedGame);
     } catch (error) {
         logger.error('Error scanning game directory:', error);

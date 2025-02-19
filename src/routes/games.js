@@ -66,7 +66,7 @@ async function enrichGameWithVersions(game) {
 
         const versions = await Promise.all(
             subfolders.map(async (folder) => {
-                const match = folder.match(/^v?(\d+\.\d+\.\d+\.\d+)/);
+                const match = folder.match(/^v?(\d+\.\d+\.?\d*\.?\d*)/);
                 if (!match) return null;
 
                 const folderPath = path.join(destinationPath, folder);
@@ -243,7 +243,7 @@ router.get('/', (req, res) => {
                             // Extract version numbers from subfolder names
                             const versions = subfolders
                                 .map(folder => {
-                                    const match = folder.match(/^v?(\d+\.\d+\.\d+\.\d+)/);
+                                    const match = folder.match(/^v?(\d+\.\d+\.?\d*\.?\d*)/);
                                     return match ? {
                                         folder,
                                         version: match[1],
@@ -428,7 +428,7 @@ router.get('/:id/version', (req, res) => {
             // Extract version numbers from subfolder names
             const versions = subfolders
                 .map(folder => {
-                    const match = folder.match(/^v?(\d+\.\d+\.\d+\.\d+)/);
+                    const match = folder.match(/^v?(\d+\.\d+\.?\d*\.?\d*)/);
                     return match ? {
                         folder,
                         version: match[1],

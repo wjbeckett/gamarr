@@ -465,9 +465,16 @@ router.post('/:id/scan', async (req, res) => {
     const { id } = req.params;
 
     try {
-        // Fetch the game details
+        // Fetch the game details with metadata
         const game = await new Promise((resolve, reject) => {
-            db.get('SELECT * FROM games WHERE id = ?', [id], (err, row) => {
+            db.get(`
+                SELECT 
+                    g.*,
+                    r.path as root_folder_name
+                FROM games g
+                LEFT JOIN root_folders r ON g.root_folder_id = r.id
+                WHERE g.id = ?
+            `, [id], (err, row) => {
                 if (err) reject(err);
                 if (!row) reject(new Error('Game not found'));
                 resolve(row);
@@ -489,11 +496,17 @@ router.post('/:id/scan', async (req, res) => {
             );
         });
 
-        // Return the enriched game data
-        res.json(enrichedGame);
+        // Include metadata in the response
+        const metadata = game.metadata ? JSON.parse(game.metadata) : null;
+        const fullGameData = {
+            ...enrichedGame,
+            metadata,
+            root_folder_name: game.root_folder_name
+        };
+
+        res.json(fullGameData);
     } catch (error) {
         logger.error('Error scanning game directory:', error);
-        // Return a 404 if the game wasn't found, otherwise 500
         const statusCode = error.message === 'Game not found' ? 404 : 500;
         const errorMessage = error.message === 'Game not found' 
             ? 'Game not found' 

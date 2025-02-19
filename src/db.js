@@ -15,6 +15,36 @@ const db = new sqlite3.Database(dbPath, (err) => {
 
 function initializeDatabase() {
     db.serialize(() => {
+        // Check if tables exist before creating them
+        db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='tasks'", (err, row) => {
+            if (!row) {
+                db.run(`CREATE TABLE tasks (/* ... table definition ... */)`, (err) => {
+                    if (err) logger.error('Failed to create tasks table:', err);
+                    else logger.info('Tasks table initialized successfully.');
+                });
+            }
+        });
+
+        // Repeat for each table...
+        db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='root_folders'", (err, row) => {
+            if (!row) {
+                db.run(`CREATE TABLE root_folders (/* ... table definition ... */)`, (err) => {
+                    if (err) logger.error('Failed to create root_folders table:', err);
+                    else {
+                        logger.info('Root folders table initialized successfully.');
+                        // Only insert default root folder if table was just created
+                        db.run(`INSERT INTO root_folders (path) VALUES (?)`, 
+                            ['/app/library'], 
+                            (err) => {
+                                if (err && err.code !== 'SQLITE_CONSTRAINT') {
+                                    logger.error('Error adding default root folder:', err);
+                                }
+                            }
+                        );
+                    }
+                });
+            }
+        });
         // Create tasks table
         db.run(`
         CREATE TABLE tasks (

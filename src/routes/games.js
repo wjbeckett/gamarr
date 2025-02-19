@@ -58,38 +58,53 @@ async function enrichGameWithVersions(game) {
                 return fs.statSync(itemPath).isDirectory();
             });
 
-        const versions = await Promise.all(
-            subfolders.map(async (folder) => {
-                const match = folder.match(/^v?(\d+\.\d+\.\d+\.\d+)/);
-                if (!match) return null;
-
-                const folderPath = path.join(destinationPath, folder);
-                const size = await getFolderSize(folderPath);
-                
-                // Find and parse NFO file
-                const nfoPath = findNfoFile(folderPath);
-                let nfoContent = null;
-                if (nfoPath) {
-                    try {
-                        const nfoData = await uiFileManager.fetchNfoContent(nfoPath);
-                        nfoContent = nfoData;
-                        logger.debug(`Successfully parsed NFO file for version ${match[1]}`);
-                    } catch (error) {
-                        logger.error(`Error parsing NFO file for version ${match[1]}:`, error);
+            const versions = await Promise.all(
+                subfolders.map(async (folder) => {
+                    const match = folder.match(/^v?(\d+\.\d+\.\d+\.\d+)/);
+                    if (!match) return null;
+        
+                    const folderPath = path.join(destinationPath, folder);
+                    const size = await getFolderSize(folderPath);
+                    
+                    // Find and parse NFO file
+                    const nfoPath = findNfoFile(folderPath);
+                    let nfoContent = null;
+                    if (nfoPath) {
+                        try {
+                            const nfoData = await uiFileManager.fetchNfoContent(nfoPath);
+                            nfoContent = nfoData;
+                            
+                            // Save NFO content to database for the latest version
+                            if (!latestVersion || match[1] > latestVersion) {
+                                await new Promise((resolve, reject) => {
+                                    db.run(
+                                        `UPDATE games SET nfo_content = ? WHERE id = ?`,
+                                        [JSON.stringify(nfoData.parsed), game.id],
+                                        (err) => {
+                                            if (err) reject(err);
+                                            resolve();
+                                        }
+                                    );
+                                });
+                            }
+                            
+                            logger.debug(`Successfully parsed NFO file for version ${match[1]}`);
+                        } catch (error) {
+                            logger.error(`Error parsing NFO file for version ${match[1]}:`, error);
+                        }
                     }
-                }
-
-                return {
-                    folder,
-                    version: match[1],
-                    path: folderPath,
-                    size,
-                    nfoPath,
-                    nfoContent,
-                    status: size > 0 ? 'completed' : 'empty'
-                };
-            })
-        );
+        
+                    return {
+                        folder,
+                        version: match[1],
+                        path: folderPath,
+                        size,
+                        nfoPath,
+                        nfoContent,
+                        status: size > 0 ? 'completed' : 'empty'
+                    };
+                })
+            );
 
         const filteredVersions = versions.filter(Boolean).sort((a, b) => {
             return b.version.localeCompare(a.version, undefined, { numeric: true, sensitivity: 'base' });
@@ -277,12 +292,12 @@ router.get('/:id', validateGameJson, (req, res) => {
     const { id } = req.params;
 
     db.get(`
-    SELECT 
-        g.*,
-        r.path as root_folder_name
-    FROM games g
-    LEFT JOIN root_folders r ON g.root_folder_id = r.id
-    WHERE g.id = ?
+        SELECT 
+            g.*,
+            r.path as root_folder_name
+        FROM games g
+        LEFT JOIN root_folders r ON g.root_folder_id = r.id
+        WHERE g.id = ?
     `, [id], async (err, game) => {
         if (err) {
             logger.error('Error fetching game:', err);
@@ -294,6 +309,7 @@ router.get('/:id', validateGameJson, (req, res) => {
 
         try {
             const metadata = game.metadata ? JSON.parse(game.metadata) : null;
+            const savedNfoContent = game.nfo_content ? JSON.parse(game.nfo_content) : null;
 
             let status = 'missing';
             let allVersions = [];
@@ -335,15 +351,18 @@ router.get('/:id', validateGameJson, (req, res) => {
                             latestVersion = versions[0].version;
                             allVersions = versions.map(v => {
                                 const nfoPath = findNfoFile(v.path);
-                                const nfoContent = nfoPath ? uiFileManager.fetchNfoContent(nfoPath) : null;
-                        
+                                // Use saved NFO content for the latest version
+                                const nfoContent = v.version === latestVersion ? 
+                                    savedNfoContent : 
+                                    (nfoPath ? uiFileManager.fetchNfoContent(nfoPath) : null);
+                                
                                 return {
                                     version: v.version,
                                     path: v.path,
                                     size: v.size,
                                     status: v.status,
                                     nfoPath,
-                                    nfoContent: nfoContent ? nfoContent.parsed : null // Include parsed content
+                                    nfoContent: nfoContent
                                 };
                             });
                             status = 'completed';

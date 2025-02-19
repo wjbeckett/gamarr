@@ -65,6 +65,7 @@ function initializeDatabase() {
             metadata TEXT,
             latest_version TEXT,
             status TEXT DEFAULT 'pending',
+            nfo_content TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(root_folder_id) REFERENCES root_folders(id)
         )

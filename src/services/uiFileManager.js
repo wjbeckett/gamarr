@@ -35,9 +35,14 @@ class UIFileManager {
         try {
             logger.debug('Parsing NFO content:', nfoContent);
     
-            const patchNotesMatch = nfoContent.match(/PatchNotes:\s*(.+)/i);
-            const requiredReleasesMatch = nfoContent.match(/The following releases are required for this update:\s*([\s\S]+?)\n\n/i);
-            const installInstructionsMatch = nfoContent.match(/\d+\.\s*([\s\S]+?)(?=\n\n|\n[A-Z]|$)/);
+            // Extract patch notes
+            const patchNotesMatch = nfoContent.match(/Patch Notes:\s*([\s\S]+?)(?=\n\n|\n[A-Z])/i);
+    
+            // Extract required releases
+            const requiredReleasesMatch = nfoContent.match(/The following releases are required:\s*([\s\S]+?)(?=\n\n|\n[A-Z])/i);
+    
+            // Extract installation instructions
+            const installInstructionsMatch = nfoContent.match(/Installation Instructions:\s*([\s\S]+?)(?=\n\n|\n[A-Z])/i);
     
             return {
                 patchNotes: patchNotesMatch ? patchNotesMatch[1].trim() : null,

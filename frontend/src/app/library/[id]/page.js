@@ -97,6 +97,7 @@ export default function GameDetails() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isScanning, setIsScanning] = useState(false);
 
     useEffect(() => {
         const fetchGame = async () => {
@@ -125,6 +126,29 @@ export default function GameDetails() {
     
         fetchGame();
     }, [params.id]);
+
+    const handleForceScan = async () => {
+        setIsScanning(true); // Indicate that the scan is in progress
+        try {
+            const res = await fetch(`/api/games/${params.id}/scan`, { method: 'POST' });
+            if (!res.ok) throw new Error('Failed to scan game directory');
+            const updatedGame = await res.json();
+            setGame(updatedGame); // Update the game state with the new data
+        } catch (err) {
+            console.error('Error scanning game directory:', err);
+            setError('Failed to scan game directory');
+        } finally {
+            setIsScanning(false); // Reset the scanning state
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-screen">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
 
     const handleDeleteGame = async (deleteFiles) => {
         try {
@@ -253,6 +277,16 @@ export default function GameDetails() {
 
                                 {/* Action Buttons */}
                                 <div className="bg-card rounded-xl p-6 shadow-lg space-y-3">
+                                    <button
+                                        className={`w-full bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition flex items-center justify-center ${
+                                            isScanning ? 'opacity-50 cursor-not-allowed' : ''
+                                        }`}
+                                        onClick={handleForceScan}
+                                        disabled={isScanning}
+                                    >
+                                        <i className="fas fa-sync-alt mr-2" />
+                                        {isScanning ? 'Scanning...' : 'Force Scan'}
+                                    </button>
                                     <button
                                         className="w-full bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition flex items-center justify-center"
                                         onClick={() => {/* TODO: Implement force search */}}

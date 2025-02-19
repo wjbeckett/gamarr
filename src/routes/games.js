@@ -248,13 +248,19 @@ router.get('/:id', validateGameJson, (req, res) => {
                         
                         if (versions.length > 0) {
                             latestVersion = versions[0].version;
-                            allVersions = versions.map(v => ({
-                                version: v.version,
-                                path: v.path,
-                                size: v.size,
-                                status: v.status,
-                                nfoPath: v.nfoPath
-                            }));
+                            allVersions = versions.map(v => {
+                                const nfoPath = findNfoFile(v.path);
+                                const nfoContent = nfoPath ? uiFileManager.fetchNfoContent(nfoPath) : null;
+                        
+                                return {
+                                    version: v.version,
+                                    path: v.path,
+                                    size: v.size,
+                                    status: v.status,
+                                    nfoPath,
+                                    nfoContent: nfoContent ? nfoContent.parsed : null // Include parsed content
+                                };
+                            });
                             status = 'completed';
                         } else {
                             status = 'pending';
@@ -400,6 +406,39 @@ router.get('/:id/version', (req, res) => {
             res.status(500).json({ error: 'Failed to read game directory' });
         }
     });
+});
+
+// Force scan game directory
+router.post('/:id/scan', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // Fetch the game details
+        const game = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM games WHERE id = ?', [id], (err, row) => {
+                if (err) reject(err);
+                resolve(row);
+            });
+        });
+
+        if (!game || !game.destination_path) {
+            return res.status(404).json({ error: 'Game or path not found' });
+        }
+
+        // Re-scan the game directory
+        const enrichedGame = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM games WHERE id = ?', [id], async (err, game) => {
+                if (err) reject(err);
+                const updatedGame = await enrichGameWithVersions(game); // Re-scan logic
+                resolve(updatedGame);
+            });
+        });
+
+        res.json(enrichedGame);
+    } catch (error) {
+        logger.error('Error scanning game directory:', error);
+        res.status(500).json({ error: 'Failed to scan game directory' });
+    }
 });
 
 // Force search (TODO)

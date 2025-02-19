@@ -3,7 +3,7 @@ export default function NfoModal({ isOpen, onClose, content }) {
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-card rounded-lg p-6 max-w-3xl w-full m-4">
+            <div className="bg-card rounded-lg p-6 max-w-3xl w-full m-4 overflow-hidden">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-semibold text-text-primary">NFO File</h3>
                     <button
@@ -24,7 +24,7 @@ export default function NfoModal({ isOpen, onClose, content }) {
                             </div>
                         )}
 
-                        {content.parsed.requiredReleases.length > 0 && (
+                        {content.parsed.requiredReleases?.length > 0 && (
                             <div>
                                 <h4 className="text-sm font-semibold text-text-secondary mb-2">Required Releases</h4>
                                 <ul className="list-disc pl-4 text-text-primary">
@@ -35,7 +35,7 @@ export default function NfoModal({ isOpen, onClose, content }) {
                             </div>
                         )}
 
-                        {content.parsed.installInstructions.length > 0 && (
+                        {content.parsed.installInstructions?.length > 0 && (
                             <div>
                                 <h4 className="text-sm font-semibold text-text-secondary mb-2">Install Instructions</h4>
                                 <ol className="list-decimal pl-4 text-text-primary">
@@ -49,9 +49,9 @@ export default function NfoModal({ isOpen, onClose, content }) {
                 )}
 
                 {/* Raw Content */}
-                <div className="mt-4 border-t border-border-dark pt-4">
+                <div className="mt-4 border-t border-border-dark pt-4 max-h-96 overflow-auto">
                     <h4 className="text-sm font-semibold text-text-secondary mb-2">Raw NFO Content</h4>
-                    <pre className="bg-gray-800 text-white p-4 rounded overflow-auto max-h-96 text-sm">
+                    <pre className="bg-gray-800 text-white p-4 rounded overflow-auto text-sm">
                         {content?.raw || 'No NFO content available.'}
                     </pre>
                 </div>

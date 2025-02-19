@@ -24,6 +24,59 @@ function findNfoFile(folderPath) {
     }
 }
 
+async function enrichGameWithVersions(game) {
+    const { destination_path: destinationPath } = game;
+
+    if (!destinationPath || !fs.existsSync(destinationPath)) {
+        throw new Error('Game directory does not exist');
+    }
+
+    try {
+        const subfolders = fs.readdirSync(destinationPath)
+            .filter(item => {
+                const itemPath = path.join(destinationPath, item);
+                return fs.statSync(itemPath).isDirectory();
+            });
+
+        const versions = subfolders
+            .map(folder => {
+                const match = folder.match(/^v?(\d+\.\d+\.\d+\.\d+)/);
+                if (!match) return null;
+
+                const folderPath = path.join(destinationPath, folder);
+                const size = uiFileManager.getFolderSize(folderPath);
+                const nfoPath = findNfoFile(folderPath);
+                const nfoContent = nfoPath ? uiFileManager.fetchNfoContent(nfoPath) : null;
+
+                return {
+                    folder,
+                    version: match[1],
+                    path: folderPath,
+                    size: size || null,
+                    nfoPath,
+                    nfoContent: nfoContent ? nfoContent.parsed : null, // Include parsed content
+                    status: size > 0 ? 'completed' : 'empty'
+                };
+            })
+            .filter(Boolean)
+            .sort((a, b) => {
+                return b.version.localeCompare(a.version, undefined, { numeric: true, sensitivity: 'base' });
+            });
+
+        const latestVersion = versions.length > 0 ? versions[0].version : null;
+
+        return {
+            ...game,
+            allVersions: versions,
+            latestVersion,
+            status: versions.length > 0 ? 'completed' : 'pending'
+        };
+    } catch (error) {
+        logger.error(`Error enriching game with versions: ${error.message}`);
+        throw new Error('Failed to enrich game with versions');
+    }
+}
+
 
 router.get('/nfo', async (req, res) => {
     const { path: nfoPath } = req.query;
@@ -426,13 +479,19 @@ router.post('/:id/scan', async (req, res) => {
         }
 
         // Re-scan the game directory
-        const enrichedGame = await new Promise((resolve, reject) => {
-            db.get('SELECT * FROM games WHERE id = ?', [id], async (err, game) => {
-                if (err) reject(err);
-                const updatedGame = await enrichGameWithVersions(game); // Re-scan logic
-                resolve(updatedGame);
-            });
-        });
+        const enrichedGame = await enrichGameWithVersions(game);
+
+        // Update the database with the latest version and status
+        db.run(
+            `UPDATE games SET latest_version = ?, status = ? WHERE id = ?`,
+            [enrichedGame.latestVersion, enrichedGame.status, id],
+            (err) => {
+                if (err) {
+                    logger.error('Error updating game in database:', err);
+                    return res.status(500).json({ error: 'Failed to update game in database' });
+                }
+            }
+        );
 
         res.json(enrichedGame);
     } catch (error) {

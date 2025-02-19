@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import DeleteGameModal from '../../components/DeleteGameModal';
 import ErrorBoundary from '../../components/ErrorBoundary';
 import FileManagement from '../../components/FileManagement';
+import Toast from '../../components/Toast';
 
 export const dynamic = 'force-dynamic';
 
@@ -98,6 +99,8 @@ export default function GameDetails() {
     const [error, setError] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isScanning, setIsScanning] = useState(false);
+    const [toastMessage, setToastMessage] = useState('');
+    const [isToastVisible, setIsToastVisible] = useState(false);
 
     useEffect(() => {
         const fetchGame = async () => {
@@ -128,17 +131,23 @@ export default function GameDetails() {
     }, [params.id]);
 
     const handleForceScan = async () => {
-        setIsScanning(true); // Indicate that the scan is in progress
+        setIsScanning(true);
+        setToastMessage('Scanning game directory...');
+        setIsToastVisible(true);
+
         try {
             const res = await fetch(`/api/games/${params.id}/scan`, { method: 'POST' });
             if (!res.ok) throw new Error('Failed to scan game directory');
             const updatedGame = await res.json();
-            setGame(updatedGame); // Update the game state with the new data
+            setGame(updatedGame);
+            setToastMessage('Scan completed successfully!');
         } catch (err) {
             console.error('Error scanning game directory:', err);
             setError('Failed to scan game directory');
+            setToastMessage('Error: Failed to scan game directory');
         } finally {
-            setIsScanning(false); // Reset the scanning state
+            setIsScanning(false);
+            setTimeout(() => setIsToastVisible(false), 3000); // Hide toast after 3 seconds
         }
     };
 
@@ -181,6 +190,12 @@ export default function GameDetails() {
     return (
         <ErrorBoundary>
             <div className="p-6 max-w-7xl mx-auto space-y-6">
+                {/* Toast Notification */}
+                <Toast
+                    message={toastMessage}
+                    isVisible={isToastVisible}
+                    onClose={() => setIsToastVisible(false)}
+                />
                 {error ? (
                     <div className="bg-red-100 text-red-700 p-4 rounded-lg">
                         Error: {error}
@@ -284,8 +299,17 @@ export default function GameDetails() {
                                         onClick={handleForceScan}
                                         disabled={isScanning}
                                     >
-                                        <i className="fas fa-sync-alt mr-2" />
-                                        {isScanning ? 'Scanning...' : 'Force Scan'}
+                                        {isScanning ? (
+                                            <>
+                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                                Scanning...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <i className="fas fa-sync-alt mr-2" />
+                                                Scan
+                                            </>
+                                        )}
                                     </button>
                                     <button
                                         className="w-full bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition flex items-center justify-center"

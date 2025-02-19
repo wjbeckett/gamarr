@@ -35,14 +35,14 @@ class UIFileManager {
         try {
             logger.debug('Parsing NFO content:', nfoContent);
     
+            // Detect numbered lists for installation instructions
+            const installInstructionsMatch = nfoContent.match(/^\s*\d+\s+.+/gm);
+    
             // Extract patch notes
             const patchNotesMatch = nfoContent.match(/Patch Notes:\s*([\s\S]+?)(?=\n\n|\n[A-Z])/i);
     
             // Extract required releases
             const requiredReleasesMatch = nfoContent.match(/The following releases are required:\s*([\s\S]+?)(?=\n\n|\n[A-Z])/i);
-    
-            // Extract installation instructions
-            const installInstructionsMatch = nfoContent.match(/Installation Instructions:\s*([\s\S]+?)(?=\n\n|\n[A-Z])/i);
     
             return {
                 patchNotes: patchNotesMatch ? patchNotesMatch[1].trim() : null,
@@ -50,7 +50,7 @@ class UIFileManager {
                     ? requiredReleasesMatch[1].split('\n').map(line => line.trim())
                     : [],
                 installInstructions: installInstructionsMatch
-                    ? installInstructionsMatch[1].split('\n').map(line => line.trim())
+                    ? installInstructionsMatch.map(line => line.trim())
                     : []
             };
         } catch (error) {

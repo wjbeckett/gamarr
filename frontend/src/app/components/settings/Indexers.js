@@ -1,9 +1,14 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import SettingsCard from '../SettingsCard';
+import SettingsModal from '../SettingsModal';
 
 export default function Indexers() {
     const [indexers, setIndexers] = useState([]);
-    const [newIndexer, setNewIndexer] = useState({ name: '', url: '', api_key: '' });
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [currentIndexer, setCurrentIndexer] = useState(null);
+    const [indexerType, setIndexerType] = useState(null); // Torznab or Newznab
+    const [testStatus, setTestStatus] = useState(null); // Test connection status
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -24,22 +29,34 @@ export default function Indexers() {
         fetchIndexers();
     }, []);
 
-    const handleAddIndexer = async () => {
-        if (!newIndexer.name || !newIndexer.url || !newIndexer.api_key) return;
-    
+    const handleAddOrEditIndexer = async () => {
+        if (!currentIndexer.name || !currentIndexer.url || !currentIndexer.api_key) {
+            alert('Please fill in all required fields.');
+            return;
+        }
+
         try {
-            const response = await fetch('/api/settings/indexers', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newIndexer),
-            });
-            if (!response.ok) throw new Error('Failed to add indexer');
-            const addedIndexer = await response.json();
-    
-            // Ensure the response contains the expected data
-            if (!addedIndexer || !addedIndexer.id) throw new Error('Invalid response format');
-            setIndexers([...indexers, addedIndexer]);
-            setNewIndexer({ name: '', url: '', api_key: '' });
+            const response = await fetch(
+                currentIndexer.id
+                    ? `/api/settings/indexers/${currentIndexer.id}`
+                    : '/api/settings/indexers',
+                {
+                    method: currentIndexer.id ? 'PUT' : 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(currentIndexer),
+                }
+            );
+            if (!response.ok) throw new Error('Failed to save indexer');
+            const updatedIndexer = await response.json();
+
+            if (currentIndexer.id) {
+                setIndexers(indexers.map((i) => (i.id === updatedIndexer.id ? updatedIndexer : i)));
+            } else {
+                setIndexers([...indexers, updatedIndexer]);
+            }
+
+            setIsModalOpen(false);
+            setCurrentIndexer(null);
         } catch (err) {
             setError(err.message);
         }
@@ -47,13 +64,25 @@ export default function Indexers() {
 
     const handleDeleteIndexer = async (id) => {
         try {
-            const response = await fetch(`/api/settings/indexers/${id}`, {
-                method: 'DELETE',
-            });
+            const response = await fetch(`/api/settings/indexers/${id}`, { method: 'DELETE' });
             if (!response.ok) throw new Error('Failed to delete indexer');
             setIndexers(indexers.filter((indexer) => indexer.id !== id));
         } catch (err) {
             setError(err.message);
+        }
+    };
+
+    const handleTestConnection = async () => {
+        try {
+            const response = await fetch('/api/settings/indexers/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(currentIndexer),
+            });
+            if (!response.ok) throw new Error('Test connection failed');
+            setTestStatus('Connection successful!');
+        } catch (err) {
+            setTestStatus('Connection failed.');
         }
     };
 
@@ -62,49 +91,89 @@ export default function Indexers() {
 
     return (
         <div>
-            <h2 className="text-xl font-semibold mb-4">Indexers</h2>
-            <ul className="mb-4">
+            <div className="space-y-4">
                 {indexers.map((indexer) => (
-                    <li key={indexer.id} className="flex justify-between items-center mb-2">
-                        <span>{indexer.name} ({indexer.url})</span>
-                        <button
-                            className="text-red-500"
-                            onClick={() => handleDeleteIndexer(indexer.id)}
-                        >
-                            Delete
-                        </button>
-                    </li>
+                    <SettingsCard
+                        key={indexer.id}
+                        title={indexer.name}
+                        details={`Status: ${indexer.enabled ? 'Enabled' : 'Disabled'}`}
+                        onEdit={() => {
+                            setCurrentIndexer(indexer);
+                            setIndexerType(indexer.type); // Torznab or Newznab
+                            setIsModalOpen(true);
+                        }}
+                        onDelete={() => handleDeleteIndexer(indexer.id)}
+                    />
                 ))}
-            </ul>
-            <div className="space-y-2">
-                <input
-                    type="text"
-                    value={newIndexer.name}
-                    onChange={(e) => setNewIndexer({ ...newIndexer, name: e.target.value })}
-                    placeholder="Name"
-                    className="border p-2 w-full"
-                />
-                <input
-                    type="text"
-                    value={newIndexer.url}
-                    onChange={(e) => setNewIndexer({ ...newIndexer, url: e.target.value })}
-                    placeholder="URL"
-                    className="border p-2 w-full"
-                />
-                <input
-                    type="text"
-                    value={newIndexer.api_key}
-                    onChange={(e) => setNewIndexer({ ...newIndexer, api_key: e.target.value })}
-                    placeholder="API Key"
-                    className="border p-2 w-full"
-                />
-                <button
-                    onClick={handleAddIndexer}
-                    className="bg-blue-500 text-white px-4 py-2 w-full"
-                >
-                    Add Indexer
-                </button>
             </div>
+            <button
+                onClick={() => {
+                    setCurrentIndexer({ name: '', url: '', api_key: '', type: '' });
+                    setIndexerType(null);
+                    setIsModalOpen(true);
+                }}
+                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mt-4"
+            >
+                Add Indexer
+            </button>
+
+            <SettingsModal
+                isOpen={isModalOpen}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    setCurrentIndexer(null);
+                }}
+                title={currentIndexer?.id ? 'Edit Indexer' : 'Add Indexer'}
+                onSave={handleAddOrEditIndexer}
+            >
+                {!indexerType ? (
+                    <div className="space-y-2">
+                        <button
+                            onClick={() => setIndexerType('Newznab')}
+                            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full"
+                        >
+                            Newznab
+                        </button>
+                        <button
+                            onClick={() => setIndexerType('Torznab')}
+                            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full"
+                        >
+                            Torznab
+                        </button>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        <input
+                            type="text"
+                            value={currentIndexer.name}
+                            onChange={(e) => setCurrentIndexer({ ...currentIndexer, name: e.target.value })}
+                            placeholder="Name"
+                            className="border p-2 w-full"
+                        />
+                        <input
+                            type="text"
+                            value={currentIndexer.url}
+                            onChange={(e) => setCurrentIndexer({ ...currentIndexer, url: e.target.value })}
+                            placeholder="URL"
+                            className="border p-2 w-full"
+                        />
+                        <input
+                            type="text"
+                            value={currentIndexer.api_key}
+                            onChange={(e) => setCurrentIndexer({ ...currentIndexer, api_key: e.target.value })}
+                            placeholder="API Key"
+                            className="border p-2 w-full"
+                        />
+                        <button
+                            onClick={handleTestConnection}
+                            className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 w-full"
+                        >
+                            Test Connection
+                        </button>
+                        {testStatus && <p className="text-sm text-gray-600">{testStatus}</p>}
+                    </div>
+                )}
+            </SettingsModal>
         </div>
     );
 }

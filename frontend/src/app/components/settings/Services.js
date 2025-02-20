@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import SettingsModal from '../SettingsModal';
+import IndexerModal from './IndexerModal';
+import DownloadClientModal from './DownloadClientModal';
 
 export default function Services() {
     const [indexers, setIndexers] = useState([]);
@@ -11,6 +12,7 @@ export default function Services() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    // Fetch indexers and download clients
     useEffect(() => {
         async function fetchServices() {
             try {
@@ -38,24 +40,20 @@ export default function Services() {
         fetchServices();
     }, []);
 
-    const handleAddOrEditService = async () => {
-        if (!currentService.name || !currentService.url) {
-            alert('Please fill in all required fields.');
-            return;
-        }
+    // Save service (add or edit)
+    const handleSaveService = async (service) => {
+        const endpoint =
+            serviceType === 'indexer'
+                ? `/api/settings/indexers${service.id ? `/${service.id}` : ''}`
+                : `/api/settings/download-clients${service.id ? `/${service.id}` : ''}`;
+
+        const method = service.id ? 'PUT' : 'POST';
 
         try {
-            const endpoint =
-                serviceType === 'indexer'
-                    ? `/api/settings/indexers${currentService.id ? `/${currentService.id}` : ''}`
-                    : `/api/settings/download-clients${currentService.id ? `/${currentService.id}` : ''}`;
-
-            const method = currentService.id ? 'PUT' : 'POST';
-
             const response = await fetch(endpoint, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(currentService),
+                body: JSON.stringify(service),
             });
 
             if (!response.ok) throw new Error('Failed to save service');
@@ -64,13 +62,13 @@ export default function Services() {
 
             if (serviceType === 'indexer') {
                 setIndexers((prev) =>
-                    currentService.id
+                    service.id
                         ? prev.map((i) => (i.id === updatedService.id ? updatedService : i))
                         : [...prev, updatedService]
                 );
             } else {
                 setDownloadClients((prev) =>
-                    currentService.id
+                    service.id
                         ? prev.map((c) => (c.id === updatedService.id ? updatedService : c))
                         : [...prev, updatedService]
                 );
@@ -83,40 +81,36 @@ export default function Services() {
         }
     };
 
-    const handleTestConnection = async () => {
-        if (!currentService.url || (serviceType === 'indexer' && !currentService.api_key)) {
-            alert('Please fill in all required fields before testing the connection.');
-            return;
-        }
+    // Test connection
+    const handleTestConnection = async (service) => {
+        const endpoint =
+            serviceType === 'indexer'
+                ? '/api/settings/indexers/test'
+                : '/api/settings/download-clients/test';
 
         try {
-            const endpoint =
-                serviceType === 'indexer'
-                    ? '/api/settings/indexers/test'
-                    : '/api/settings/download-clients/test';
-
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(currentService),
+                body: JSON.stringify(service),
             });
 
-            if (!response.ok) throw new Error('Test connection failed');
-            return true; // Connection successful
+            return response.ok; // Return true if the connection is successful
         } catch (err) {
-            return false; // Connection failed
+            return false; // Return false if the connection fails
         }
     };
 
+    // Delete service
     const handleDeleteService = async (id, type) => {
         if (!confirm('Are you sure you want to delete this service?')) return;
 
-        try {
-            const endpoint =
-                type === 'indexer'
-                    ? `/api/settings/indexers/${id}`
-                    : `/api/settings/download-clients/${id}`;
+        const endpoint =
+            type === 'indexer'
+                ? `/api/settings/indexers/${id}`
+                : `/api/settings/download-clients/${id}`;
 
+        try {
             const response = await fetch(endpoint, { method: 'DELETE' });
 
             if (!response.ok) throw new Error('Failed to delete service');
@@ -136,14 +130,15 @@ export default function Services() {
 
     return (
         <div className="space-y-8 px-6 md:px-12">
-            <h1 className="text-3xl font-bold text-text-primary">Services</h1>
-            <p className="text-text-secondary">
-                Configure your indexers and download clients below.
-            </p>
-
             {/* Indexers Section */}
             <div>
-                <h2 className="text-2xl font-semibold text-text-primary mb-4">Indexers</h2>
+                <div className="border-b border-border-dark pb-4">
+                    <h1 className="text-2xl font-bold text-text-primary">Indexer Settings</h1>
+                    <p className="text-text-secondary">
+                        Configure your Indexer server below. This is only intended for Prowlarr at
+                        this point in time.
+                    </p>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {indexers.map((indexer) => (
                         <div
@@ -191,7 +186,7 @@ export default function Services() {
                     {/* Add Indexer Card */}
                     <div
                         onClick={() => {
-                            setCurrentService({ name: '', url: '', api_key: '', enabled: true });
+                            setCurrentService({ name: '', url: '', apiKey: '', enabled: true });
                             setServiceType('indexer');
                             setIsModalOpen(true);
                         }}
@@ -204,7 +199,13 @@ export default function Services() {
 
             {/* Download Clients Section */}
             <div>
-                <h2 className="text-2xl font-semibold text-text-primary mb-4">Download Clients</h2>
+                <div className="border-b border-border-dark pb-4">
+                    <h1 className="text-2xl font-bold text-text-primary">Download Client Settings</h1>
+                    <p className="text-text-secondary">
+                        Configure your Download Clients below. At this point in time, only certain
+                        Torrent clients are supported.
+                    </p>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {downloadClients.map((client) => (
                         <div
@@ -255,7 +256,18 @@ export default function Services() {
                     {/* Add Download Client Card */}
                     <div
                         onClick={() => {
-                            setCurrentService({ name: '', url: '', enabled: true });
+                            setCurrentService({
+                                name: '',
+                                host: '',
+                                port: '',
+                                useSSL: false,
+                                username: '',
+                                password: '',
+                                category: '',
+                                initialState: '',
+                                tags: '',
+                                enabled: true,
+                            });
                             setServiceType('download_client');
                             setIsModalOpen(true);
                         }}
@@ -266,73 +278,25 @@ export default function Services() {
                 </div>
             </div>
 
-            {/* Add/Edit Service Modal */}
-            <SettingsModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                title={currentService?.id ? 'Edit Service' : 'Add Service'}
-                onSave={handleAddOrEditService}
-                onTest={handleTestConnection}
-            >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label className="block text-sm font-medium text-text-secondary">
-                            Name *
-                        </label>
-                        <input
-                            type="text"
-                            value={currentService?.name || ''}
-                            onChange={(e) =>
-                                setCurrentService({ ...currentService, name: e.target.value })
-                            }
-                            className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-text-secondary">
-                            URL *
-                        </label>
-                        <input
-                            type="text"
-                            value={currentService?.url || ''}
-                            onChange={(e) =>
-                                setCurrentService({ ...currentService, url: e.target.value })
-                            }
-                            className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
-                        />
-                    </div>
-                    {serviceType === 'indexer' && (
-                        <div>
-                            <label className="block text-sm font-medium text-text-secondary">
-                                API Key *
-                            </label>
-                            <input
-                                type="text"
-                                value={currentService?.api_key || ''}
-                                onChange={(e) =>
-                                    setCurrentService({ ...currentService, api_key: e.target.value })
-                                }
-                                className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
-                            />
-                        </div>
-                    )}
-                    {serviceType === 'download_client' && (
-                        <div>
-                            <label className="block text-sm font-medium text-text-secondary">
-                                Type
-                            </label>
-                            <input
-                                type="text"
-                                value={currentService?.type || ''}
-                                onChange={(e) =>
-                                    setCurrentService({ ...currentService, type: e.target.value })
-                                }
-                                className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
-                            />
-                        </div>
-                    )}
-                </div>
-            </SettingsModal>
+            {/* Modals */}
+            {serviceType === 'indexer' && (
+                <IndexerModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onSave={handleSaveService}
+                    onTest={handleTestConnection}
+                    currentIndexer={currentService}
+                />
+            )}
+            {serviceType === 'download_client' && (
+                <DownloadClientModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onSave={handleSaveService}
+                    onTest={handleTestConnection}
+                    currentClient={currentService}
+                />
+            )}
         </div>
     );
 }

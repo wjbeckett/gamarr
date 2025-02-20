@@ -1,9 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CheckIcon, XMarkIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 
 export default function SettingsModal({ isOpen, onClose, title, children, onSave, onTest }) {
     const [isTesting, setIsTesting] = useState(false);
     const [testResult, setTestResult] = useState(null); // null, 'success', or 'fail'
+
+    // Reset the test button state when the modal is opened
+    useEffect(() => {
+        if (isOpen) {
+            setIsTesting(false);
+            setTestResult(null);
+        }
+    }, [isOpen]);
 
     const handleTest = async () => {
         setIsTesting(true);
@@ -36,7 +44,7 @@ export default function SettingsModal({ isOpen, onClose, title, children, onSave
                                 ? 'bg-green-500 text-white'
                                 : testResult === 'fail'
                                 ? 'bg-red-500 text-white'
-                                : 'bg-blue-500 text-white hover:bg-blue-600'
+                                : 'bg-yellow-500 text-white hover:bg-yellow-600'
                         }`}
                         disabled={isTesting}
                     >
@@ -54,7 +62,7 @@ export default function SettingsModal({ isOpen, onClose, title, children, onSave
                                 ? 'Successful'
                                 : testResult === 'fail'
                                 ? 'Failed'
-                                : 'Test Connection'}
+                                : 'Test'}
                         </span>
                     </button>
                     <button

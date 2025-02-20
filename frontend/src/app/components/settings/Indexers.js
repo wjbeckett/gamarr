@@ -185,7 +185,10 @@ export default function Indexers() {
                         <input
                             type="text"
                             value={currentIndexer?.name || ''}
-                            onChange={(e) => setCurrentIndexer({ ...currentIndexer, name: e.target.value })}
+                            onChange={(e) => {
+                                setCurrentIndexer({ ...currentIndexer, name: e.target.value });
+                                setTestStatus(null); // Reset the test button state
+                            }}
                             placeholder="e.g., Prowlarr"
                             className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
                         />
@@ -195,7 +198,10 @@ export default function Indexers() {
                         <input
                             type="text"
                             value={currentIndexer?.url || ''}
-                            onChange={(e) => setCurrentIndexer({ ...currentIndexer, url: e.target.value })}
+                            onChange={(e) => {
+                                setCurrentIndexer({ ...currentIndexer, url: e.target.value });
+                                setTestStatus(null); // Reset the test button state
+                            }}
                             placeholder="e.g., http://localhost:9696"
                             className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
                         />
@@ -205,7 +211,10 @@ export default function Indexers() {
                         <input
                             type="text"
                             value={currentIndexer?.api_key || ''}
-                            onChange={(e) => setCurrentIndexer({ ...currentIndexer, api_key: e.target.value })}
+                            onChange={(e) => {
+                                setCurrentIndexer({ ...currentIndexer, api_key: e.target.value });
+                                setTestStatus(null); // Reset the test button state
+                            }}
                             placeholder="Enter API Key"
                             className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
                         />

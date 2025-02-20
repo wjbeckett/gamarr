@@ -1,6 +1,5 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import SettingsCard from '../SettingsCard';
 import SettingsModal from '../SettingsModal';
 
 export default function Indexers() {
@@ -75,31 +74,86 @@ export default function Indexers() {
         }
     };
 
+    const handleDeleteIndexer = async (id) => {
+        if (!confirm('Are you sure you want to delete this indexer?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/settings/indexers/${id}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete indexer');
+            }
+
+            setIndexers(indexers.filter(indexer => indexer.id !== id));
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error}</div>;
+
     return (
-        <div>
-            <div className="space-y-4">
+        <div className="space-y-6">
+            <h1 className="text-2xl font-bold text-text-primary">Indexer Settings</h1>
+            <p className="text-text-secondary">
+                Configure your indexers below. You can add multiple indexers, but only one can be active at a time.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {indexers.map((indexer) => (
-                    <SettingsCard
+                    <div
                         key={indexer.id}
-                        title={indexer.name}
-                        details={`Status: ${indexer.enabled ? 'Enabled' : 'Disabled'}`}
-                        onEdit={() => {
-                            setCurrentIndexer(indexer);
-                            setIsModalOpen(true);
-                        }}
-                        onDelete={() => handleDeleteIndexer(indexer.id)}
-                    />
+                        className="bg-card rounded-lg shadow-md p-6 space-y-4"
+                    >
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-lg font-semibold text-text-primary">{indexer.name}</h2>
+                            <span
+                                className={`px-2 py-1 text-sm rounded ${
+                                    indexer.enabled ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                                }`}
+                            >
+                                {indexer.enabled ? 'Enabled' : 'Disabled'}
+                            </span>
+                        </div>
+                        <p className="text-sm text-text-secondary break-all">
+                            <strong>URL:</strong> {indexer.url}
+                        </p>
+                        <div className="flex space-x-4">
+                            <button
+                                onClick={() => {
+                                    setCurrentIndexer(indexer);
+                                    setIsModalOpen(true);
+                                }}
+                                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                            >
+                                Edit
+                            </button>
+                            <button
+                                onClick={() => handleDeleteIndexer(indexer.id)}
+                                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
                 ))}
+
+                {/* Add Indexer Card */}
+                <div
+                    onClick={() => {
+                        setCurrentIndexer({ name: '', url: '', api_key: '', enabled: true });
+                        setIsModalOpen(true);
+                    }}
+                    className="border-2 border-dashed border-text-secondary rounded-lg flex items-center justify-center p-6 cursor-pointer hover:border-text-primary"
+                >
+                    <span className="text-text-secondary">+ Add Indexer</span>
+                </div>
             </div>
-            <button
-                onClick={() => {
-                    setCurrentIndexer({ name: '', url: '', api_key: '', enabled: true });
-                    setIsModalOpen(true);
-                }}
-                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mt-4"
-            >
-                Add Indexer
-            </button>
 
             <SettingsModal
                 isOpen={isModalOpen}
@@ -113,21 +167,21 @@ export default function Indexers() {
                         value={currentIndexer?.name || ''}
                         onChange={(e) => setCurrentIndexer({ ...currentIndexer, name: e.target.value })}
                         placeholder="Name"
-                        className="border p-2 w-full"
+                        className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
                     />
                     <input
                         type="text"
                         value={currentIndexer?.url || ''}
                         onChange={(e) => setCurrentIndexer({ ...currentIndexer, url: e.target.value })}
                         placeholder="URL"
-                        className="border p-2 w-full"
+                        className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
                     />
                     <input
                         type="text"
                         value={currentIndexer?.api_key || ''}
                         onChange={(e) => setCurrentIndexer({ ...currentIndexer, api_key: e.target.value })}
                         placeholder="API Key"
-                        className="border p-2 w-full"
+                        className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
                     />
                     <button
                         onClick={handleTestConnection}

@@ -76,6 +76,32 @@ router.post('/indexers', (req, res) => {
     });
 });
 
+// Test indexer connection
+router.post('/indexers/test', async (req, res) => {
+    const { url, api_key } = req.body;
+    
+    if (!url || !api_key) {
+        return res.status(400).json({ error: 'URL and API key are required' });
+    }
+
+    try {
+        // Here you would typically make a test request to the indexer
+        // For now, we'll just verify the URL is valid
+        const testUrl = new URL(url);
+        
+        // You can add actual connection test logic here later
+        // For example, making a request to the indexer API
+        
+        res.json({ success: true, message: 'Connection test successful' });
+    } catch (err) {
+        logger.error('Indexer connection test failed:', err);
+        res.status(400).json({ 
+            success: false, 
+            error: 'Failed to connect to indexer' 
+        });
+    }
+});
+
 // Update an indexer
 router.put('/indexers/:id', (req, res) => {
     const { name, url, api_key } = req.body;

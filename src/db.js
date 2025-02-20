@@ -106,6 +106,7 @@ function initializeDatabase() {
                         name TEXT NOT NULL,
                         url TEXT NOT NULL,
                         api_key TEXT NOT NULL,
+                        type TEXT NOT NULL,  // Added type column
                         enabled BOOLEAN DEFAULT 1,
                         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -113,6 +114,16 @@ function initializeDatabase() {
                 `, (err) => {
                     if (err) logger.error('Failed to create indexers table:', err);
                     else logger.info('Indexers table initialized successfully.');
+                });
+            } else {
+                // Add type column if it doesn't exist
+                db.get("PRAGMA table_info(indexers)", (err, rows) => {
+                    if (!rows.some(row => row.name === 'type')) {
+                        db.run("ALTER TABLE indexers ADD COLUMN type TEXT", (err) => {
+                            if (err) logger.error('Failed to add type column to indexers:', err);
+                            else logger.info('Added type column to indexers table');
+                        });
+                    }
                 });
             }
         });

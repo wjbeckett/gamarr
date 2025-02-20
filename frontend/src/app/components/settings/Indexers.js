@@ -86,6 +86,33 @@ export default function Indexers() {
         }
     };
 
+    const handleAddClick = () => {
+        setCurrentIndexer({
+            name: '',
+            url: '',
+            api_key: '',
+            type: '',
+            enabled: true
+        });
+        setIndexerType(null);
+        setIsModalOpen(true);
+    };
+
+    const handleTypeSelect = (type) => {
+        setIndexerType(type);
+        setCurrentIndexer(prev => ({
+            ...prev,
+            type: type
+        }));
+    };
+
+    const handleModalClose = () => {
+        setIsModalOpen(false);
+        setCurrentIndexer(null);
+        setIndexerType(null);
+        setTestStatus(null);
+    };
+
     if (loading) return <div>Loading indexers...</div>;
     if (error) return <div>Error loading indexers: {error}</div>;
 
@@ -107,11 +134,7 @@ export default function Indexers() {
                 ))}
             </div>
             <button
-                onClick={() => {
-                    setCurrentIndexer({ name: '', url: '', api_key: '', type: '' });
-                    setIndexerType(null);
-                    setIsModalOpen(true);
-                }}
+                onClick={handleAddClick}
                 className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mt-4"
             >
                 Add Indexer
@@ -119,23 +142,20 @@ export default function Indexers() {
 
             <SettingsModal
                 isOpen={isModalOpen}
-                onClose={() => {
-                    setIsModalOpen(false);
-                    setCurrentIndexer(null);
-                }}
+                onClose={handleModalClose}
                 title={currentIndexer?.id ? 'Edit Indexer' : 'Add Indexer'}
                 onSave={handleAddOrEditIndexer}
             >
                 {!indexerType ? (
                     <div className="space-y-2">
                         <button
-                            onClick={() => setIndexerType('Newznab')}
+                            onClick={() => handleTypeSelect('Newznab')}
                             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full"
                         >
                             Newznab
                         </button>
                         <button
-                            onClick={() => setIndexerType('Torznab')}
+                            onClick={() => handleTypeSelect('Torznab')}
                             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full"
                         >
                             Torznab

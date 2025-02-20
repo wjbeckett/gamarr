@@ -6,6 +6,10 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
+.page-content {
+  padding-top: 5rem; /* Adjust based on the height of the mobile menu */
+}
+
 /* Custom animations */
 @keyframes fadeIn {
   from {

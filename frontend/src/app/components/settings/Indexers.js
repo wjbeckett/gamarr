@@ -159,7 +159,25 @@ export default function Indexers() {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 title={currentIndexer?.id ? 'Edit Indexer' : 'Add Indexer'}
-                onSave={handleAddOrEditIndexer}
+                onSave={async () => {
+                    await handleAddOrEditIndexer();
+                    // Refresh the indexers list after saving
+                    const response = await fetch('/api/settings/indexers');
+                    const data = await response.json();
+                    setIndexers(data);
+                }}
+                onTest={async () => {
+                    try {
+                        const response = await fetch('/api/settings/indexers/test', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(currentIndexer),
+                        });
+                        return response.ok; // Return true if the test is successful
+                    } catch {
+                        return false; // Return false if the test fails
+                    }
+                }}
             >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -178,7 +196,7 @@ export default function Indexers() {
                             type="text"
                             value={currentIndexer?.url || ''}
                             onChange={(e) => setCurrentIndexer({ ...currentIndexer, url: e.target.value })}
-                            placeholder="e.g., http://192.168.1.2:9696"
+                            placeholder="e.g., http://localhost:9696"
                             className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
                         />
                     </div>
@@ -192,20 +210,7 @@ export default function Indexers() {
                             className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
                         />
                     </div>
-                    <div className="flex items-end">
-                        <button
-                            onClick={handleTestConnection}
-                            className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600 w-full"
-                        >
-                            Test Connection
-                        </button>
-                    </div>
                 </div>
-                {testStatus && (
-                    <p className={`text-sm mt-2 ${testStatus === 'Connection successful!' ? 'text-green-400' : 'text-red-400'}`}>
-                        {testStatus}
-                    </p>
-                )}
             </SettingsModal>
         </div>
     );

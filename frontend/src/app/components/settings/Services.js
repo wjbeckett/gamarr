@@ -110,15 +110,15 @@ export default function Services() {
     if (error) return <div>Error: {error}</div>;
 
     return (
-        <div className="space-y-6">
-            <h1 className="text-2xl font-bold text-text-primary">Services</h1>
+        <div className="space-y-8 px-6 md:px-12">
+            <h1 className="text-3xl font-bold text-text-primary">Services</h1>
             <p className="text-text-secondary">
                 Configure your indexers and download clients below.
             </p>
 
             {/* Indexers Section */}
             <div>
-                <h2 className="text-xl font-semibold text-text-primary">Indexers</h2>
+                <h2 className="text-2xl font-semibold text-text-primary mb-4">Indexers</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {indexers.map((indexer) => (
                         <div
@@ -162,12 +162,24 @@ export default function Services() {
                             </div>
                         </div>
                     ))}
+
+                    {/* Add Indexer Card */}
+                    <div
+                        onClick={() => {
+                            setCurrentService({ name: '', url: '', enabled: true });
+                            setServiceType('indexer');
+                            setIsModalOpen(true);
+                        }}
+                        className="border-2 border-dashed border-text-secondary rounded-lg flex items-center justify-center p-6 cursor-pointer hover:border-text-primary"
+                    >
+                        <span className="text-text-secondary">+ Add Indexer</span>
+                    </div>
                 </div>
             </div>
 
             {/* Download Clients Section */}
             <div>
-                <h2 className="text-xl font-semibold text-text-primary">Download Clients</h2>
+                <h2 className="text-2xl font-semibold text-text-primary mb-4">Download Clients</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {downloadClients.map((client) => (
                         <div
@@ -214,10 +226,22 @@ export default function Services() {
                             </div>
                         </div>
                     ))}
+
+                    {/* Add Download Client Card */}
+                    <div
+                        onClick={() => {
+                            setCurrentService({ name: '', url: '', enabled: true });
+                            setServiceType('download_client');
+                            setIsModalOpen(true);
+                        }}
+                        className="border-2 border-dashed border-text-secondary rounded-lg flex items-center justify-center p-6 cursor-pointer hover:border-text-primary"
+                    >
+                        <span className="text-text-secondary">+ Add Download Client</span>
+                    </div>
                 </div>
             </div>
 
-            {/* Add Service Modal */}
+            {/* Add/Edit Service Modal */}
             <SettingsModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
@@ -251,36 +275,6 @@ export default function Services() {
                             className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
                         />
                     </div>
-                    {serviceType === 'download_client' && (
-                        <>
-                            <div>
-                                <label className="block text-sm font-medium text-text-secondary">
-                                    Type
-                                </label>
-                                <input
-                                    type="text"
-                                    value={currentService?.type || ''}
-                                    onChange={(e) =>
-                                        setCurrentService({ ...currentService, type: e.target.value })
-                                    }
-                                    className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-text-secondary">
-                                    API Key
-                                </label>
-                                <input
-                                    type="text"
-                                    value={currentService?.api_key || ''}
-                                    onChange={(e) =>
-                                        setCurrentService({ ...currentService, api_key: e.target.value })
-                                    }
-                                    className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
-                                />
-                            </div>
-                        </>
-                    )}
                 </div>
             </SettingsModal>
         </div>

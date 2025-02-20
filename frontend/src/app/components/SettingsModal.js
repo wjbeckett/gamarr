@@ -5,13 +5,13 @@ export default function SettingsModal({ isOpen, onClose, title, children, onSave
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <div className="bg-white rounded-lg shadow-lg w-1/2 p-6">
-                <h2 className="text-xl font-bold mb-4">{title}</h2>
-                <div className="space-y-4">{children}</div>
-                <div className="flex justify-end space-x-2 mt-4">
+            <div className="bg-card rounded-lg shadow-lg w-full max-w-2xl p-6 space-y-6">
+                <h2 className="text-2xl font-bold text-text-primary">{title}</h2>
+                <div className="space-y-6">{children}</div>
+                <div className="flex justify-end space-x-4">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                        className="px-4 py-2 bg-gray-700 text-text-secondary rounded hover:bg-gray-600"
                     >
                         Cancel
                     </button>

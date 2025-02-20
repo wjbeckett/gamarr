@@ -101,7 +101,7 @@ export default function Indexers() {
         <div className="space-y-6">
             <h1 className="text-2xl font-bold text-text-primary">Indexer Settings</h1>
             <p className="text-text-secondary">
-                Configure your indexers below. You can add multiple indexers, but only one can be active at a time.
+                Configure your indexers below. At te moment, only Prowlarr is supported. This may change in the future.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -161,36 +161,51 @@ export default function Indexers() {
                 title={currentIndexer?.id ? 'Edit Indexer' : 'Add Indexer'}
                 onSave={handleAddOrEditIndexer}
             >
-                <div className="space-y-4">
-                    <input
-                        type="text"
-                        value={currentIndexer?.name || ''}
-                        onChange={(e) => setCurrentIndexer({ ...currentIndexer, name: e.target.value })}
-                        placeholder="Name"
-                        className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
-                    />
-                    <input
-                        type="text"
-                        value={currentIndexer?.url || ''}
-                        onChange={(e) => setCurrentIndexer({ ...currentIndexer, url: e.target.value })}
-                        placeholder="URL"
-                        className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
-                    />
-                    <input
-                        type="text"
-                        value={currentIndexer?.api_key || ''}
-                        onChange={(e) => setCurrentIndexer({ ...currentIndexer, api_key: e.target.value })}
-                        placeholder="API Key"
-                        className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
-                    />
-                    <button
-                        onClick={handleTestConnection}
-                        className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 w-full"
-                    >
-                        Test Connection
-                    </button>
-                    {testStatus && <p className="text-sm text-gray-600">{testStatus}</p>}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-medium text-text-secondary">Indexer Name *</label>
+                        <input
+                            type="text"
+                            value={currentIndexer?.name || ''}
+                            onChange={(e) => setCurrentIndexer({ ...currentIndexer, name: e.target.value })}
+                            placeholder="e.g., Prowlarr"
+                            className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-text-secondary">URL *</label>
+                        <input
+                            type="text"
+                            value={currentIndexer?.url || ''}
+                            onChange={(e) => setCurrentIndexer({ ...currentIndexer, url: e.target.value })}
+                            placeholder="e.g., http://192.168.1.2:9696"
+                            className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-text-secondary">API Key *</label>
+                        <input
+                            type="text"
+                            value={currentIndexer?.api_key || ''}
+                            onChange={(e) => setCurrentIndexer({ ...currentIndexer, api_key: e.target.value })}
+                            placeholder="Enter API Key"
+                            className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
+                        />
+                    </div>
+                    <div className="flex items-end">
+                        <button
+                            onClick={handleTestConnection}
+                            className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600 w-full"
+                        >
+                            Test Connection
+                        </button>
+                    </div>
                 </div>
+                {testStatus && (
+                    <p className={`text-sm mt-2 ${testStatus === 'Connection successful!' ? 'text-green-400' : 'text-red-400'}`}>
+                        {testStatus}
+                    </p>
+                )}
             </SettingsModal>
         </div>
     );

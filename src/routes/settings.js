@@ -53,7 +53,7 @@ router.get('/indexers', (req, res) => {
 // Add a new indexer
 router.post('/indexers', (req, res) => {
     const { name, url, api_key } = req.body;
-    
+
     if (!name || !url || !api_key) {
         return res.status(400).json({ error: 'Name, URL, and API key are required' });
     }
@@ -61,7 +61,7 @@ router.post('/indexers', (req, res) => {
     db.run(`
         INSERT INTO indexers (name, url, api_key)
         VALUES (?, ?, ?)
-    `, [name, url, api_key], function(err) {
+    `, [name, url, api_key], function (err) {
         if (err) {
             logger.error('Failed to add indexer:', err);
             return res.status(500).json({ error: 'Failed to add indexer' });
@@ -79,26 +79,25 @@ router.post('/indexers', (req, res) => {
 // Test indexer connection
 router.post('/indexers/test', async (req, res) => {
     const { url, api_key } = req.body;
-    
+
     if (!url || !api_key) {
         return res.status(400).json({ error: 'URL and API key are required' });
     }
 
     try {
-        // Here you would typically make a test request to the indexer
-        // For now, we'll just verify the URL is valid
-        const testUrl = new URL(url);
-        
-        // You can add actual connection test logic here later
-        // For example, making a request to the indexer API
-        
-        res.json({ success: true, message: 'Connection test successful' });
+        // Test connection to Prowlarr
+        const response = await fetch(`${url}/api/v1/indexer`, {
+            headers: { 'X-Api-Key': api_key },
+        });
+
+        if (response.ok) {
+            res.json({ success: true, message: 'Connection test successful' });
+        } else {
+            res.status(400).json({ success: false, error: 'Failed to connect to Prowlarr' });
+        }
     } catch (err) {
         logger.error('Indexer connection test failed:', err);
-        res.status(400).json({ 
-            success: false, 
-            error: 'Failed to connect to indexer' 
-        });
+        res.status(500).json({ success: false, error: 'Error connecting to Prowlarr' });
     }
 });
 

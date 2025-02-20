@@ -44,7 +44,7 @@ export default function SettingsModal({ isOpen, onClose, title, children, onSave
                                 ? 'bg-green-500 text-white'
                                 : testResult === 'fail'
                                 ? 'bg-red-500 text-white'
-                                : 'bg-yellow-500 text-white hover:bg-yellow-600'
+                                : 'bg-[#6366f1] text-white hover:bg-[#4f51d9]'
                         }`}
                         disabled={isTesting}
                     >
@@ -67,7 +67,7 @@ export default function SettingsModal({ isOpen, onClose, title, children, onSave
                     </button>
                     <button
                         onClick={onSave}
-                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        className="px-4 py-2 bg-[#6366f1] text-white rounded hover:bg-[#4f51d9]"
                     >
                         Save
                     </button>

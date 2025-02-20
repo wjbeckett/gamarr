@@ -26,7 +26,7 @@ export default function Sidebar() {
   return (
     <>
       {/* Mobile Hamburger Menu Button */}
-      {!isSidebarOpen && ( // Hide the button when the sidebar is open
+      {!isSidebarOpen && (
         <button
           type="button"
           className="md:hidden fixed top-4 left-4 z-50 h-10 w-10 flex items-center justify-center rounded-md bg-card hover:bg-card-hover transition-colors"
@@ -70,7 +70,7 @@ export default function Sidebar() {
                     ? 'bg-primary/10 text-primary'
                     : 'text-text-secondary hover:bg-card-hover hover:text-text-primary'
                 }`}
-                onClick={() => setIsSidebarOpen(false)} // Close sidebar on mobile
+                onClick={() => setIsSidebarOpen(false)}
               >
                 <HomeIcon className="h-5 w-5" />
                 <span>Library</span>
@@ -86,7 +86,7 @@ export default function Sidebar() {
                     ? 'bg-primary/10 text-primary'
                     : 'text-text-secondary hover:bg-card-hover hover:text-text-primary'
                 }`}
-                onClick={() => setIsSidebarOpen(false)} // Close sidebar on mobile
+                onClick={() => setIsSidebarOpen(false)}
               >
                 <ClockIcon className="h-5 w-5" />
                 <span>Activity</span>
@@ -132,28 +132,15 @@ export default function Sidebar() {
                   </li>
                   <li>
                     <Link
-                      href="/settings/indexers"
+                      href="/settings/services"
                       className={`block pl-4 py-2 text-sm rounded-md transition-colors ${
-                        isActive('/settings/indexers')
+                        isActive('/settings/services')
                           ? 'text-primary'
                           : 'text-text-secondary hover:text-text-primary'
                       }`}
                       onClick={() => setIsSidebarOpen(false)}
                     >
-                      Indexers
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/settings/download-clients"
-                      className={`block pl-4 py-2 text-sm rounded-md transition-colors ${
-                        isActive('/settings/download-clients')
-                          ? 'text-primary'
-                          : 'text-text-secondary hover:text-text-primary'
-                      }`}
-                      onClick={() => setIsSidebarOpen(false)}
-                    >
-                      Download Clients
+                      Services
                     </Link>
                   </li>
                   <li>

@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import IndexerModal from './IndexerModal';
-import DownloadClientModal from './DownloadClientModal';
+import IndexerModal from '../IndexerModal';
+import DownloadClientModal from '../DownloadClientModal';
 
 export default function Services() {
     const [indexers, setIndexers] = useState([]);

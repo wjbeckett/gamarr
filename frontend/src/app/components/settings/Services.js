@@ -83,6 +83,31 @@ export default function Services() {
         }
     };
 
+    const handleTestConnection = async () => {
+        if (!currentService.url || (serviceType === 'indexer' && !currentService.api_key)) {
+            alert('Please fill in all required fields before testing the connection.');
+            return;
+        }
+
+        try {
+            const endpoint =
+                serviceType === 'indexer'
+                    ? '/api/settings/indexers/test'
+                    : '/api/settings/download-clients/test';
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(currentService),
+            });
+
+            if (!response.ok) throw new Error('Test connection failed');
+            return true; // Connection successful
+        } catch (err) {
+            return false; // Connection failed
+        }
+    };
+
     const handleDeleteService = async (id, type) => {
         if (!confirm('Are you sure you want to delete this service?')) return;
 
@@ -166,7 +191,7 @@ export default function Services() {
                     {/* Add Indexer Card */}
                     <div
                         onClick={() => {
-                            setCurrentService({ name: '', url: '', enabled: true });
+                            setCurrentService({ name: '', url: '', api_key: '', enabled: true });
                             setServiceType('indexer');
                             setIsModalOpen(true);
                         }}
@@ -247,6 +272,7 @@ export default function Services() {
                 onClose={() => setIsModalOpen(false)}
                 title={currentService?.id ? 'Edit Service' : 'Add Service'}
                 onSave={handleAddOrEditService}
+                onTest={handleTestConnection}
             >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -275,6 +301,36 @@ export default function Services() {
                             className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
                         />
                     </div>
+                    {serviceType === 'indexer' && (
+                        <div>
+                            <label className="block text-sm font-medium text-text-secondary">
+                                API Key *
+                            </label>
+                            <input
+                                type="text"
+                                value={currentService?.api_key || ''}
+                                onChange={(e) =>
+                                    setCurrentService({ ...currentService, api_key: e.target.value })
+                                }
+                                className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
+                            />
+                        </div>
+                    )}
+                    {serviceType === 'download_client' && (
+                        <div>
+                            <label className="block text-sm font-medium text-text-secondary">
+                                Type
+                            </label>
+                            <input
+                                type="text"
+                                value={currentService?.type || ''}
+                                onChange={(e) =>
+                                    setCurrentService({ ...currentService, type: e.target.value })
+                                }
+                                className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
+                            />
+                        </div>
+                    )}
                 </div>
             </SettingsModal>
         </div>

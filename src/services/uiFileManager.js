@@ -34,7 +34,7 @@ class UIFileManager {
     parseNfoContent(nfoContent) {
         try {
             logger.debug('Parsing NFO content:', nfoContent);
-            
+    
             const parsed = {
                 installInstructions: [],
                 generalNotes: [],
@@ -45,7 +45,6 @@ class UIFileManager {
             // Split the content into lines
             const lines = nfoContent.split('\n');
             let currentSection = null;
-            let currentNote = '';
             let isASCIIArt = false;
     
             for (let i = 0; i < lines.length; i++) {
@@ -53,7 +52,7 @@ class UIFileManager {
                 const lowerLine = line.toLowerCase();
     
                 // Skip ASCII art sections
-                if (line.includes('_____') || line.includes('|__|') || line.match(/^\|[\w\s|.-]+\|$/)) {
+                if (line.match(/^[\s|_]+$/) || line.match(/^\|[\w\s|.-]+\|$/)) {
                     isASCIIArt = true;
                     continue;
                 }
@@ -67,61 +66,43 @@ class UIFileManager {
                 // Skip ASCII art lines
                 if (isASCIIArt) continue;
     
-                // Check for section headers
+                // Detect section headers
                 if (lowerLine.includes('general notes')) {
                     currentSection = 'generalNotes';
                     continue;
-                } else if (lowerLine.includes('install') || lowerLine.match(/^\d+\s*[.)]?\s*unpack/)) {
+                } else if (lowerLine.includes('install') || lowerLine.includes('unpack')) {
                     currentSection = 'installInstructions';
                     continue;
-                } else if (lowerLine.includes('crack') && !lowerLine.includes('crack instructions:')) {
+                } else if (lowerLine.includes('crack') && lowerLine.includes('instructions')) {
                     currentSection = 'crackInstructions';
                     continue;
                 }
     
                 // Process line content
-                if (currentSection && line) {
-                    // Handle numbered or bulleted lines
-                    let cleanedLine = line
-                        .replace(/^\d+[.)]?\s*/, '') // Remove leading numbers
-                        .replace(/^[-•]\s*/, '')     // Remove bullet points
-                        .trim();
+                if (currentSection) {
+                    // Remove leading numbers, dashes, or dots
+                    let cleanedLine = line.replace(/^[\d\s.-]+/, '').trim();
     
-                    if (cleanedLine && !cleanedLine.match(/^[_|]/) && !cleanedLine.includes('ASCII by')) {
-                        // If the line ends with a continuation character, start building a multi-line note
-                        if (cleanedLine.endsWith('..') || cleanedLine.endsWith('...')) {
-                            currentNote = cleanedLine.replace(/\.+$/, ' ');
-                        } else if (currentNote) {
-                            // If we have a current note, append this line and add the complete note
-                            currentNote += cleanedLine;
-                            if (!parsed[currentSection].includes(currentNote)) {
-                                parsed[currentSection].push(currentNote);
-                            }
-                            currentNote = '';
-                        } else {
-                            // Regular single-line note
-                            if (!parsed[currentSection].includes(cleanedLine)) {
-                                parsed[currentSection].push(cleanedLine);
-                            }
+                    // Skip irrelevant lines
+                    if (!cleanedLine || cleanedLine.match(/^[_|]/) || cleanedLine.includes('ASCII by')) {
+                        continue;
+                    }
+    
+                    // Add the cleaned line to the current section
+                    if (currentSection === 'crackInstructions') {
+                        // Only add lines that look like actual crack instructions
+                        if (cleanedLine.toLowerCase().includes('copy') || cleanedLine.toLowerCase().includes('crack')) {
+                            parsed[currentSection].push(cleanedLine);
                         }
+                    } else {
+                        parsed[currentSection].push(cleanedLine);
                     }
                 }
             }
     
-            // Add any remaining currentNote
-            if (currentNote && currentSection) {
-                parsed[currentSection].push(currentNote.trim());
-            }
-    
-            // Clean up empty sections and filter out ASCII art lines
+            // Clean up empty sections
             for (const key in parsed) {
-                parsed[key] = parsed[key]
-                    .filter(line => 
-                        line.length > 0 && 
-                        !line.match(/^[_|]/) && 
-                        !line.includes('ASCII by') &&
-                        !line.match(/^\d+$/)
-                    );
+                parsed[key] = parsed[key].filter(line => line.length > 0);
             }
     
             return parsed;

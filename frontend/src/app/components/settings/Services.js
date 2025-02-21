@@ -90,17 +90,25 @@ export default function Services() {
             serviceType === 'indexer'
                 ? '/api/settings/indexers/test'
                 : '/api/settings/download-clients/test';
-
+    
         try {
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(service),
+                body: JSON.stringify({
+                    url: service.url,
+                    api_key: service.apiKey // Ensure the correct field is used
+                })
             });
-
-            return response.ok; // Return true if the connection is successful
+    
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to test connection');
+            }
+    
+            alert('Connection successful!');
         } catch (err) {
-            return false; // Return false if the connection fails
+            alert(`Connection failed: ${err.message}`);
         }
     };
 

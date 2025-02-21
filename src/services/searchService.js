@@ -4,10 +4,11 @@ const db = require('../db');
 class SearchService {
     async searchGame(query) {
         try {
-            // Get the configured indexer
-            const indexer = await new Promise((resolve, reject) => {
+            // Fetch the Prowlarr configuration from the database
+            const prowlarrConfig = await new Promise((resolve, reject) => {
                 db.get(
-                    'SELECT * FROM indexers WHERE enabled = 1 LIMIT 1',
+                    'SELECT * FROM indexers WHERE name = ? AND enabled = 1',
+                    ['Prowlarr'], // Assuming the indexer is named "Prowlarr"
                     (err, row) => {
                         if (err) reject(err);
                         resolve(row);
@@ -15,25 +16,24 @@ class SearchService {
                 );
             });
 
-            if (!indexer) {
-                throw new Error('No enabled indexer found');
+            if (!prowlarrConfig) {
+                throw new Error('No enabled Prowlarr configuration found in the database.');
             }
 
-            logger.debug('Using indexer:', {
-                name: indexer.name,
-                url: indexer.url,
-                // Don't log the full API key
-                apiKey: indexer.api_key ? '***' + indexer.api_key.slice(-4) : 'missing'
+            logger.debug('Using Prowlarr configuration:', {
+                name: prowlarrConfig.name,
+                url: prowlarrConfig.url,
+                apiKey: prowlarrConfig.api_key ? '***' + prowlarrConfig.api_key.slice(-4) : 'missing'
             });
 
             // Construct the search URL for Prowlarr
-            const searchUrl = new URL('/api/v1/search', indexer.url);
+            const searchUrl = new URL('/api/v1/search', prowlarrConfig.url);
             searchUrl.searchParams.append('query', query);
-            searchUrl.searchParams.append('apikey', indexer.api_key);
+            searchUrl.searchParams.append('apikey', prowlarrConfig.api_key);
 
             // Make the request to Prowlarr
             const response = await fetch(searchUrl.toString(), {
-                method: 'GET', // Use GET for searching across all indexers
+                method: 'GET',
                 headers: {
                     'Accept': 'application/json'
                 }

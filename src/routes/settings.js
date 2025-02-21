@@ -77,7 +77,6 @@ router.post('/indexers', (req, res) => {
 });
 
 // Test indexer connection
-// Test indexer connection
 router.post('/indexers/test', async (req, res) => {
     const { url, api_key } = req.body;
 
@@ -85,8 +84,10 @@ router.post('/indexers/test', async (req, res) => {
         return res.status(400).json({ error: 'URL and API key are required.' });
     }
 
+    logger.debug('Testing indexer connection with URL:', url);
+    logger.debug('Using API key:', api_key ? '***' + api_key.slice(-4) : 'missing');
+
     try {
-        // Test connection to Prowlarr
         const response = await fetch(`${url}/api/v1/search?query=test&apikey=${api_key}`, {
             method: 'GET',
             headers: { 'Accept': 'application/json' }
@@ -96,6 +97,7 @@ router.post('/indexers/test', async (req, res) => {
             res.json({ success: true, message: 'Connection test successful' });
         } else {
             const errorText = await response.text();
+            logger.error('Prowlarr API error:', errorText);
             res.status(400).json({ success: false, error: `Failed to connect to Prowlarr: ${errorText}` });
         }
     } catch (err) {

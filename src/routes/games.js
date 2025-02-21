@@ -53,7 +53,7 @@ async function enrichGameWithVersions(game) {
             ...game,
             allVersions: [],
             latestVersion: null,
-            status: 'missing'
+            status: 'missing',
         };
     }
 

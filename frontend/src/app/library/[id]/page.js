@@ -189,7 +189,6 @@ export default function GameDetails() {
             const res = await fetch(`/api/search?query=${encodeURIComponent(game.name)}`);
             if (!res.ok) throw new Error('Search failed');
             const results = await res.json();
-            
             setSearchResults(results);
             setIsSearchModalOpen(true);
         } catch (error) {
@@ -198,6 +197,23 @@ export default function GameDetails() {
             setIsToastVisible(true);
         } finally {
             setIsSearching(false);
+        }
+    };
+
+    const handleDownload = async (result) => {
+        try {
+            const res = await fetch(`/api/games/${game.id}/download`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ downloadUrl: result.downloadUrl }),
+            });
+            if (!res.ok) throw new Error('Download failed');
+            setToastMessage('Download started successfully!');
+            setIsToastVisible(true);
+        } catch (error) {
+            console.error('Download error:', error);
+            setToastMessage('Error: Failed to start download');
+            setIsToastVisible(true);
         }
     };
 
@@ -483,10 +499,7 @@ export default function GameDetails() {
                             isOpen={isSearchModalOpen}
                             onClose={() => setIsSearchModalOpen(false)}
                             results={searchResults}
-                            onDownload={(result) => {
-                                // TODO: Implement download functionality
-                                console.log('Download:', result);
-                            }}
+                            onDownload={handleDownload}
                         />
                     </>
                 )}

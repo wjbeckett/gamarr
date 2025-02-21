@@ -19,15 +19,15 @@ app.use('/api/settings', settingsRouter);
 app.use('/api/games', gamesRouter);
 
 // POST endpoint to search for games
-app.post('/api/search', async (req, res) => {
-    const { query } = req.body;
+app.get('/api/search', async (req, res) => {
+    const { query } = req.query;
 
     if (!query || query.trim() === '') {
         return res.status(400).json({ error: 'Search query is required' });
     }
 
     try {
-        const results = await metadataService.searchGameName(query);
+        const results = await searchService.searchGame(query);
         logger.debug('Search results being sent to client:', results);
         res.json(results);
     } catch (error) {

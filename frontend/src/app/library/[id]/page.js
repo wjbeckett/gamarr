@@ -5,6 +5,7 @@ import DeleteGameModal from '../../components/DeleteGameModal';
 import ErrorBoundary from '../../components/ErrorBoundary';
 import FileManagement from '../../components/FileManagement';
 import Toast from '../../components/Toast';
+import IndexerResultModal from '../../components/IndexerResultModal'
 
 export const dynamic = 'force-dynamic';
 
@@ -101,6 +102,9 @@ export default function GameDetails() {
     const [isScanning, setIsScanning] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
     const [isToastVisible, setIsToastVisible] = useState(false);
+    const [searchResults, setSearchResults] = useState([]);
+    const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+    const [isSearching, setIsSearching] = useState(false);
 
     useEffect(() => {
         const fetchGame = async () => {
@@ -176,6 +180,24 @@ export default function GameDetails() {
         } catch (err) {
             console.error('Delete error:', err);
             setError(err.message);
+        }
+    };
+
+    const handleSearch = async () => {
+        setIsSearching(true);
+        try {
+            const res = await fetch(`/api/search?query=${encodeURIComponent(game.name)}`);
+            if (!res.ok) throw new Error('Search failed');
+            const results = await res.json();
+            
+            setSearchResults(results);
+            setIsSearchModalOpen(true);
+        } catch (error) {
+            console.error('Search error:', error);
+            setToastMessage('Error: Failed to search for game');
+            setIsToastVisible(true);
+        } finally {
+            setIsSearching(false);
         }
     };
 
@@ -312,10 +334,23 @@ export default function GameDetails() {
                                         )}
                                     </button>
                                     <button
-                                        className="w-full bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition flex items-center justify-center"
-                                        onClick={() => {/* TODO: Implement force search */}}
+                                        className={`w-full bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition flex items-center justify-center ${
+                                            isSearching ? 'opacity-50 cursor-not-allowed' : ''
+                                        }`}
+                                        onClick={handleSearch}
+                                        disabled={isSearching}
                                     >
-                                        <i className="fas fa-sync-alt mr-2" /> Force Search
+                                        {isSearching ? (
+                                            <>
+                                                <div className="rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                                Searching...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <i className="fas fa-search mr-2" />
+                                                Search
+                                            </>
+                                        )}
                                     </button>
                                     {game.status !== 'completed' && game.status !== 'downloading' && (
                                         <button
@@ -441,6 +476,17 @@ export default function GameDetails() {
                             isOpen={isDeleteModalOpen}
                             onClose={() => setIsDeleteModalOpen(false)}
                             onConfirm={handleDeleteGame}
+                        />
+
+                        {/* Search Modal */}
+                        <IndexerResultModal
+                            isOpen={isSearchModalOpen}
+                            onClose={() => setIsSearchModalOpen(false)}
+                            results={searchResults}
+                            onDownload={(result) => {
+                                // TODO: Implement download functionality
+                                console.log('Download:', result);
+                            }}
                         />
                     </>
                 )}

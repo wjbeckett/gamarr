@@ -30,7 +30,10 @@ export default function IndexerModal({ isOpen, onClose, onSave, onTest, currentI
                         <input
                             type="text"
                             value={indexer.name || ''}
-                            onChange={(e) => setIndexer({ ...indexer, name: e.target.value })}
+                            onChange={(e) => {
+                                setIndexer({ ...indexer, name: e.target.value });
+                                setTestStatus(null); // Reset test status
+                            }}
                             className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
                         />
                     </div>
@@ -41,7 +44,10 @@ export default function IndexerModal({ isOpen, onClose, onSave, onTest, currentI
                         <input
                             type="text"
                             value={indexer.url || ''}
-                            onChange={(e) => setIndexer({ ...indexer, url: e.target.value })}
+                            onChange={(e) => {
+                                setIndexer({ ...indexer, url: e.target.value });
+                                setTestStatus(null); // Reset test status
+                            }}
                             className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
                         />
                     </div>
@@ -51,8 +57,11 @@ export default function IndexerModal({ isOpen, onClose, onSave, onTest, currentI
                         </label>
                         <input
                             type="password"
-                            value={indexer.apiKey || ''}
-                            onChange={(e) => setIndexer({ ...indexer, apiKey: e.target.value })}
+                            value={indexer.api_key || ''} // Use `api_key` to match backend
+                            onChange={(e) => {
+                                setIndexer({ ...indexer, api_key: e.target.value }); // Update `api_key`
+                                setTestStatus(null); // Reset test status
+                            }}
                             className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
                         />
                     </div>

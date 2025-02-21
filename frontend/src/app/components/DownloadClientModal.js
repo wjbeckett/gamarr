@@ -28,7 +28,10 @@ export default function DownloadClientModal({ isOpen, onClose, onSave, onTest, c
                         <input
                             type="text"
                             value={client.name || ''}
-                            onChange={(e) => setClient({ ...client, name: e.target.value })}
+                            onChange={(e) => {
+                                setClient({ ...client, name: e.target.value });
+                                setTestStatus(null); // Reset test status
+                            }}
                             className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
                         />
                     </div>
@@ -37,7 +40,10 @@ export default function DownloadClientModal({ isOpen, onClose, onSave, onTest, c
                         <input
                             type="text"
                             value={client.host || ''}
-                            onChange={(e) => setClient({ ...client, host: e.target.value })}
+                            onChange={(e) => {
+                                setClient({ ...client, host: e.target.value });
+                                setTestStatus(null); // Reset test status
+                            }}
                             className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
                         />
                     </div>
@@ -46,7 +52,10 @@ export default function DownloadClientModal({ isOpen, onClose, onSave, onTest, c
                         <input
                             type="number"
                             value={client.port || ''}
-                            onChange={(e) => setClient({ ...client, port: e.target.value })}
+                            onChange={(e) => {
+                                setClient({ ...client, port: e.target.value });
+                                setTestStatus(null); // Reset test status
+                            }}
                             className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
                         />
                     </div>
@@ -54,7 +63,10 @@ export default function DownloadClientModal({ isOpen, onClose, onSave, onTest, c
                         <input
                             type="checkbox"
                             checked={client.useSSL || false}
-                            onChange={(e) => setClient({ ...client, useSSL: e.target.checked })}
+                            onChange={(e) => {
+                                setClient({ ...client, useSSL: e.target.checked });
+                                setTestStatus(null); // Reset test status
+                            }}
                             className="form-checkbox text-indigo-600"
                         />
                         <label className="text-sm font-medium text-text-secondary">Use SSL</label>
@@ -64,7 +76,10 @@ export default function DownloadClientModal({ isOpen, onClose, onSave, onTest, c
                         <input
                             type="text"
                             value={client.username || ''}
-                            onChange={(e) => setClient({ ...client, username: e.target.value })}
+                            onChange={(e) => {
+                                setClient({ ...client, username: e.target.value });
+                                setTestStatus(null); // Reset test status
+                            }}
                             className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
                         />
                     </div>
@@ -73,7 +88,10 @@ export default function DownloadClientModal({ isOpen, onClose, onSave, onTest, c
                         <input
                             type="password"
                             value={client.password || ''}
-                            onChange={(e) => setClient({ ...client, password: e.target.value })}
+                            onChange={(e) => {
+                                setClient({ ...client, password: e.target.value });
+                                setTestStatus(null); // Reset test status
+                            }}
                             className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
                         />
                     </div>
@@ -82,7 +100,10 @@ export default function DownloadClientModal({ isOpen, onClose, onSave, onTest, c
                         <input
                             type="text"
                             value={client.category || ''}
-                            onChange={(e) => setClient({ ...client, category: e.target.value })}
+                            onChange={(e) => {
+                                setClient({ ...client, category: e.target.value });
+                                setTestStatus(null); // Reset test status
+                            }}
                             className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
                         />
                     </div>
@@ -100,7 +121,10 @@ export default function DownloadClientModal({ isOpen, onClose, onSave, onTest, c
                         <input
                             type="text"
                             value={client.tags || ''}
-                            onChange={(e) => setClient({ ...client, tags: e.target.value })}
+                            onChange={(e) => {
+                                setClient({ ...client, tags: e.target.value });
+                                setTestStatus(null); // Reset test status
+                            }}
                             className="bg-card border border-border-dark text-text-primary p-2 w-full rounded"
                         />
                     </div>

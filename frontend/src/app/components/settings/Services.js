@@ -97,18 +97,20 @@ export default function Services() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     url: service.url,
-                    api_key: service.apiKey // Ensure the correct field is used
-                })
+                    api_key: service.api_key,
+                }),
             });
     
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to test connection');
+                setTestStatus('failed'); // Set the test status to failed
+                return false;
             }
     
-            alert('Connection successful!');
+            setTestStatus('success'); // Set the test status to success
+            return true;
         } catch (err) {
-            alert(`Connection failed: ${err.message}`);
+            setTestStatus('failed'); // Set the test status to failed
+            return false;
         }
     };
 

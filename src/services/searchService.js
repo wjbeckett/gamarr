@@ -28,23 +28,15 @@ class SearchService {
 
             // Construct the search URL for Prowlarr
             const searchUrl = new URL('/api/v1/search', indexer.url);
-            
-            // Prepare the search parameters according to Prowlarr's API
-            const searchParams = {
-                query: query,
-                type: 'search',
-                categories: [], // Add specific categories if needed
-                limit: 100
-            };
+            searchUrl.searchParams.append('query', query);
+            searchUrl.searchParams.append('apikey', indexer.api_key);
 
             // Make the request to Prowlarr
             const response = await fetch(searchUrl.toString(), {
-                method: 'POST', // Prowlarr expects a POST request
+                method: 'GET', // Use GET for searching across all indexers
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-Api-Key': indexer.api_key
-                },
-                body: JSON.stringify(searchParams)
+                    'Accept': 'application/json'
+                }
             });
 
             if (!response.ok) {
@@ -58,7 +50,7 @@ class SearchService {
             }
 
             const results = await response.json();
-            
+
             // Log the first result for debugging
             if (results.length > 0) {
                 logger.debug('First search result:', results[0]);

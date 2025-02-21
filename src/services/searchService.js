@@ -40,6 +40,7 @@ class SearchService {
                 leechers: result.leechers,
                 downloadUrl: result.downloadUrl,
                 protocol: result.protocol,
+                indexer: indexer.name,
                 publishDate: result.publishDate
             }));
         } catch (error) {

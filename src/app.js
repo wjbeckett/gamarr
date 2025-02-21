@@ -7,6 +7,7 @@ const { normalizeDownloadPath } = require('./utils/helpers');
 const path = require('path');
 const db = require('./db');
 const metadataService = require('./services/metadata');
+const searchService = require('./services/searchService');
 const app = express();
 const fs = require('fs');
 const settingsRouter = require('./routes/settings');

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CheckIcon, XMarkIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 
-export default function DownloadClientModal({ isOpen, onClose, onSave, onTest, currentClient }) {
+export default function DownloadClientModal({ isOpen, onClose, onSave, onTest, currentClient, clientType }) {
     const [client, setClient] = useState(currentClient || {});
     const [testStatus, setTestStatus] = useState(null);
     const [isTesting, setIsTesting] = useState(false);
@@ -18,15 +18,13 @@ export default function DownloadClientModal({ isOpen, onClose, onSave, onTest, c
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-card p-6 rounded-lg shadow-lg w-full max-w-2xl">
+            <div className="bg-card p-6 rounded-lg shadow-lg w-full max-w-2xl flex flex-col">
                 <h2 className="text-2xl font-bold text-text-primary mb-4">
-                    {client.id ? 'Edit Download Client' : 'Add New Download Client'}
+                    {client.id ? `Edit Download Client - ${clientType}` : `Add Download Client - ${clientType}`}
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="overflow-y-auto flex-grow space-y-6 pr-4">
                     <div>
-                        <label className="block text-sm font-medium text-text-secondary">
-                            Name *
-                        </label>
+                        <label className="block text-sm font-medium text-text-secondary">Name *</label>
                         <input
                             type="text"
                             value={client.name || ''}
@@ -35,9 +33,7 @@ export default function DownloadClientModal({ isOpen, onClose, onSave, onTest, c
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-text-secondary">
-                            Host *
-                        </label>
+                        <label className="block text-sm font-medium text-text-secondary">Host *</label>
                         <input
                             type="text"
                             value={client.host || ''}
@@ -46,9 +42,7 @@ export default function DownloadClientModal({ isOpen, onClose, onSave, onTest, c
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-text-secondary">
-                            Port *
-                        </label>
+                        <label className="block text-sm font-medium text-text-secondary">Port *</label>
                         <input
                             type="number"
                             value={client.port || ''}
@@ -66,9 +60,7 @@ export default function DownloadClientModal({ isOpen, onClose, onSave, onTest, c
                         <label className="text-sm font-medium text-text-secondary">Use SSL</label>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-text-secondary">
-                            Username
-                        </label>
+                        <label className="block text-sm font-medium text-text-secondary">Username</label>
                         <input
                             type="text"
                             value={client.username || ''}
@@ -77,9 +69,7 @@ export default function DownloadClientModal({ isOpen, onClose, onSave, onTest, c
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-text-secondary">
-                            Password
-                        </label>
+                        <label className="block text-sm font-medium text-text-secondary">Password</label>
                         <input
                             type="password"
                             value={client.password || ''}
@@ -88,9 +78,7 @@ export default function DownloadClientModal({ isOpen, onClose, onSave, onTest, c
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-text-secondary">
-                            Category
-                        </label>
+                        <label className="block text-sm font-medium text-text-secondary">Category</label>
                         <input
                             type="text"
                             value={client.category || ''}
@@ -99,9 +87,7 @@ export default function DownloadClientModal({ isOpen, onClose, onSave, onTest, c
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-text-secondary">
-                            Initial State
-                        </label>
+                        <label className="block text-sm font-medium text-text-secondary">Initial State</label>
                         <input
                             type="text"
                             value={client.initialState || ''}
@@ -110,9 +96,7 @@ export default function DownloadClientModal({ isOpen, onClose, onSave, onTest, c
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-text-secondary">
-                            Tags
-                        </label>
+                        <label className="block text-sm font-medium text-text-secondary">Tags</label>
                         <input
                             type="text"
                             value={client.tags || ''}

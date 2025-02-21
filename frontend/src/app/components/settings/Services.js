@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import IndexerModal from '../IndexerModal';
 import DownloadClientModal from '../DownloadClientModal';
+import DownloadClientTypeModal from '../DownloadClientTypeModal';
 
 export default function Services() {
     const [indexers, setIndexers] = useState([]);
@@ -11,6 +12,8 @@ export default function Services() {
     const [serviceType, setServiceType] = useState(null); // 'indexer' or 'download_client'
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isTypeModalOpen, setIsTypeModalOpen] = useState(false);
+    const [selectedClientType, setSelectedClientType] = useState(null);
 
     // Fetch indexers and download clients
     useEffect(() => {
@@ -123,6 +126,26 @@ export default function Services() {
         } catch (err) {
             setError(err.message);
         }
+    };
+
+    const handleClientTypeSelect = (type) => {
+        setSelectedClientType(type);
+        setIsTypeModalOpen(false);
+        setCurrentService({
+            name: '',
+            host: '',
+            port: '',
+            useSSL: false,
+            username: '',
+            password: '',
+            category: '',
+            initialState: '',
+            tags: '',
+            enabled: true,
+            type: type // Store the selected type
+        });
+        setServiceType('download_client');
+        setIsModalOpen(true);
     };
 
     if (loading) return <div>Loading services...</div>;
@@ -255,22 +278,7 @@ export default function Services() {
 
                     {/* Add Download Client Card */}
                     <div
-                        onClick={() => {
-                            setCurrentService({
-                                name: '',
-                                host: '',
-                                port: '',
-                                useSSL: false,
-                                username: '',
-                                password: '',
-                                category: '',
-                                initialState: '',
-                                tags: '',
-                                enabled: true,
-                            });
-                            setServiceType('download_client');
-                            setIsModalOpen(true);
-                        }}
+                        onClick={() => setIsTypeModalOpen(true)}
                         className="border-2 border-dashed border-text-secondary rounded-lg flex items-center justify-center p-6 cursor-pointer hover:border-text-primary"
                     >
                         <span className="text-text-secondary">+ Add Download Client</span>
@@ -297,6 +305,11 @@ export default function Services() {
                     currentClient={currentService}
                 />
             )}
+            <DownloadClientTypeModal
+                isOpen={isTypeModalOpen}
+                onClose={() => setIsTypeModalOpen(false)}
+                onSelect={handleClientTypeSelect}
+            />
         </div>
     );
 }

@@ -29,8 +29,10 @@ class SearchService {
             // Construct the search URL for Prowlarr
             const searchUrl = new URL('/api/v1/search', prowlarrConfig.url);
             searchUrl.searchParams.append('query', query);
-            searchUrl.searchParams.append('apikey', prowlarrConfig.api_key);
             searchUrl.searchParams.append('type', 'search'); // Ensure both Torrent and NZB results are included
+            searchUrl.searchParams.append('limit', '100'); // Set a limit for the number of results
+            searchUrl.searchParams.append('offset', '0'); // Start from the first result
+            searchUrl.searchParams.append('apikey', prowlarrConfig.api_key);
 
             // Make the request to Prowlarr
             const response = await fetch(searchUrl.toString(), {
@@ -51,14 +53,6 @@ class SearchService {
             }
 
             const results = await response.json();
-
-            // Log the raw JSON response for debugging
-            logger.debug('Raw Prowlarr response:', results);
-
-            // Log the protocol for each result
-            results.forEach(result => {
-                logger.debug('Result protocol:', result.protocol);
-            });
 
             // Map the results
             return results.map(result => ({

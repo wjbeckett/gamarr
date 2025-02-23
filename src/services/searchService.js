@@ -29,9 +29,11 @@ class SearchService {
             // Construct the search URL for Prowlarr
             const searchUrl = new URL('/api/v1/search', prowlarrConfig.url);
             searchUrl.searchParams.append('query', query);
-            searchUrl.searchParams.append('type', 'search'); // Ensure both Torrent and NZB results are included
-            searchUrl.searchParams.append('limit', '100'); // Set a limit for the number of results
-            searchUrl.searchParams.append('offset', '0'); // Start from the first result
+            searchUrl.searchParams.append('categories', '1000');
+            searchUrl.searchParams.append('categories', '4000');
+            searchUrl.searchParams.append('type', 'search');
+            searchUrl.searchParams.append('limit', '100');
+            searchUrl.searchParams.append('offset', '0');
             searchUrl.searchParams.append('apikey', prowlarrConfig.api_key);
 
             // Make the request to Prowlarr
@@ -64,12 +66,25 @@ class SearchService {
                 indexer: result.indexer,
                 publishDate: result.publishDate,
                 downloadUrl: result.downloadUrl,
-                age: this._calculateAge(result.publishDate)
+                age: this._calculateAge(result.publishDate),
+                category: result.category || result.categories?.[0], // Some indexers use category, others use categories array
+                categoryName: this._getCategoryName(result.category || result.categories?.[0]),
+                guid: result.guid, // Unique identifier for the release
+                magnetUrl: result.magnetUrl, // For torrent results that provide magnet links
+                infoUrl: result.infoUrl,
             }));
         } catch (error) {
             logger.error('Error in searchGame:', error);
             throw error;
         }
+    }
+
+    _getCategoryName(category) {
+        const categories = {
+            4000: 'PC Game',
+            1000: 'Console Game'
+        };
+        return categories[category] || 'Unknown';
     }
 
     _calculateAge(publishDate) {
